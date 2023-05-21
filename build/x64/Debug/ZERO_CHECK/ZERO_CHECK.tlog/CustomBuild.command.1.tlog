@@ -1,0 +1,10 @@
+^G:\PROGRAMMIERSCHEISS\CUSSINGLANG\CUSSINGLANGIMPL\BUILD\CMAKEFILES\3F9DA9E0D83FA26E234ED717AC1221DC\GENERATE.STAMP.RULE
+setlocal
+C:\Users\Lance\scoop\apps\cmake\3.26.3\bin\cmake.exe -SG:/Programmierscheiss/CussingLang/CussingLangImpl -BG:/Programmierscheiss/CussingLang/CussingLangImpl/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file G:/Programmierscheiss/CussingLang/CussingLangImpl/build/CussingLangImpl.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

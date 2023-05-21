@@ -1,0 +1,23 @@
+- Variable declaration
+	- let
+	- strongly typed is optional
+	- const
+- Structures
+	- struct
+	- un
+	- enum (powerful please)
+- Control Flow
+	- do while
+	- goto
+	- if
+	- elif
+	- else
+	- try, tryaround (like using), grasp (catch), finally
+	- for, fore, foreb (foreach backward)
+- Threads etc
+	- lmd (lamda)
+	- texc (thread exec inline)
+	- procxc (process exec)
+	- virttexc (virtual thread execute)
+- Boolean
+	- is, in, and, or, xor, not

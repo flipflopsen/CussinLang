@@ -1,0 +1,173 @@
+{
+  "main": {
+    "id": "12dc0c339c0cd6f0",
+    "type": "split",
+    "children": [
+      {
+        "id": "6125a3c66eff6abd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ee3dc396840bbe6c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Cussin Lang/General/Language Features.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "486efbf42c12da39",
+    "type": "split",
+    "children": [
+      {
+        "id": "e8d19f428af377f4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "faaed16e2f1cc7b9",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "a5f37ef24ff41d73",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "d8c557db64b0afa5",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f99f99ba37f528a4",
+    "type": "split",
+    "children": [
+      {
+        "id": "6e2b1d83b0cdfe51",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "491b3e250d2c9da7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Cussin Lang/General/Language Features.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "dac9280a5036eb8c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Cussin Lang/General/Language Features.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "4488caca49a5646b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "bf61212fb0589a8a",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Cussin Lang/General/Language Features.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "ee3dc396840bbe6c",
+  "lastOpenFiles": [
+    "Cussin Lang/General/Keywords.md",
+    "Cussin Lang/Practical/Implementation/Parser/Parser.md",
+    "Cussin Lang/Practical/Implementation/Lexer/Lexer.md",
+    "Cussin Lang/Practical/Implementation/Parser",
+    "Cussin Lang/Practical/Implementation/Lexer/TokenTypes.md",
+    "Cussin Lang/Practical/Implementation/Implementation.md",
+    "Cussin Lang/Practical/Implementation/Lexer",
+    "Cussin Lang/Theory/Compiler Theory/Compiler Theory.md",
+    "Cussin Lang/Theory/Compiler Theory",
+    "Cussin Lang/Theory",
+    "Cussin Lang/Practical/LLVM/LLVM.md",
+    "Cussin Lang/Practical/Implementation",
+    "Cussin Lang/Practical/LLVM",
+    "Cussin Lang/Practical",
+    "Cussin Lang/Notes and Knowledge",
+    "Cussin Lang/General/Used technologies.md",
+    "Cussin Lang/General/Language Features.md",
+    "Cussin Lang/General/Builtins (Methods).md",
+    "Cussin Lang/General",
+    "Cussin Lang/Cussing.md",
+    "Cussin Lang"
+  ]
+}
