@@ -5,120 +5,36 @@
 #include "stdio.h"
 
 
-void ParseChangeExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count)
+Parser::Parser(TokenArray tokens)
 {
-	for (int i = 0; i < dict_count; i++)
-	{
-		bool key_found = strcompare(tokens[2].contents, dict[i].key);
-
-		if (key_found)
-		{
-			if (!strcompare(tokens[1].contents, dict[i].datatype))
-			{
-				printf("the variable types do not match\n");
-				return;
-			}
-			if (strcompare(tokens[1].contents, "int"))
-			{
-				*(int *)dict[i].value = strtoint(tokens[3].contents);
-				printf("value of %s changed to %d\n", dict[i].key, *(int *)dict[i].value);
-				return;
-			}
-			else if (strcompare(tokens[1].contents, "char"))
-			{
-				*(char *)dict[i].value = *tokens[3].contents;
-				printf("value of %s changed to %c\n", dict[i].key, *(char*)dict[i].value);
-				return;
-			}
-			if (strcompare(tokens[1].contents, "string"))
-			{
-				strcopy((char *)dict[i].value, tokens[3].contents);
-				printf("value of %s changed to %s\n", dict[i].key, (char *)dict[i].value);
-				return;
-			}
-		}
-	}
-	printf("could not find the variable: %s\n", tokens[2].contents);
+	Tokens = tokens;
+	CurTok = 0;
+	Count = tokens.count;
 }
 
-void ParseListExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count)
+Token Parser::getNextToken()
 {
-	for (int i = 0; i < dict_count; i++)
-	{
-		if (strcompare(dict[i].datatype, "int"))
-		{
-			printf("%s : %d\n", dict[i].key, *(int *)dict[i].value);
-		}
-		else if (strcompare(dict[i].datatype, "char"))
-		{
-			printf("%s : %c\n", dict[i].key, *(char *)dict[i].value);
-		}
-		else if (strcompare(dict[i].datatype, "string"))
-		{
-			printf("%s : %s\n", dict[i].key, (char *)dict[i].value);
-		}
-		else
-		{
-			printf("%s : type not supported\n", dict[i].key);
-		}
-	}
+	Token tok = Parser::Tokens.tokens[CurTok];
+	Parser::CurTok++;
+	return tok;
+}
+std::unique_ptr<ExprAST> Parser::LogError(const char* Str) {
+	fprintf(stderr, "Error: %s\n", Str);
+	return nullptr;
+}
+std::unique_ptr<PrototypeAST> Parser::LogErrorP(const char* Str) {
+	LogError(Str);
+	return nullptr;
 }
 
-void ParseExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count)
+void Parser::outputVals()
 {
-	switch (tokens[0].type)
+	int i = 0;
+	while (CurTok < Count - 1)
 	{
-	case TokenType_IDENTIFIER:
-	{
-		if (strcompare(tokens[0].contents, "change"))
-		{
-			if (token_count < 4)
-			{
-				printf("The command should take the structure of:\n\n");
-				printf("\tchange typename variablename value\n");
-				printf("\te.g change int variable1 7\n");
-			}
+		Token tok = getNextToken();
+		printf("[Parser] Token %d val: %s, type: %s \n", i, tok.contents, TokenTypeToString(tok.type));
+		i++;
+	}
 
-			ParseChangeExpression(tokens, token_count, dict, dict_count);
-			return;
-		}
-		else if (strcompare(tokens[0].contents, "list"))
-		{
-			if (token_count < 3)
-			{
-				printf("The command should take the structure of:\n\n");
-				printf("\tlist variable OR list all\n");
-				return;
-			}
-			if (strcompare(tokens[1].contents, "all"))
-			{
-				ParseListExpression(tokens, token_count, dict, dict_count);
-				return;
-			}
-			else
-			{
-				for (int i = 0; i < dict_count; i++)
-				{
-					if (strcompare(tokens[1].contents, dict[i].key))
-					{
-						ParseListExpression(tokens, token_count, &dict[i], 1);
-						return;
-					}
-				}
-				printf("could not find the variable : %s\n", tokens[1].contents);
-			}
-		}
-		else
-		{
-			printf("The command does not exist\n");
-		}
-	}
-	break;
-
-	default:
-	{
-		printf("Unable to parse the token\n");
-	}
-	break;
-	}
 }

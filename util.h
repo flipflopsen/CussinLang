@@ -8,16 +8,10 @@
 #include <stdio.h>
 #include <cstring>
 
-//Note: Must pass a null terminated string!
-
-
-//Note: Must pass a null terminated string!
 inline bool strcompare(char* first, char const* second)
 {
 	bool result;
 
-	//NOTE: if they start the same but one is shorter, this still returns true
-	// so we check their size (num of chars before the null terminator)
 	for (int i = 0; first[i] != '\0' || second[i] != '\0'; i++)
 	{
 		if (first[i] != second[i])
@@ -32,8 +26,6 @@ inline bool strcompare(char* first, char const* second)
 
 inline char const* strcopy(char* destination, char const* source)
 {
-	//Note: very basic implementation, does not check for overflow
-	// as the rest of the app is limited to char[256]
 	char* temp = destination;
 
 	while (*source != '\0')
@@ -50,8 +42,8 @@ inline char const* strcopy(char* destination, char const* source)
 
 inline void GetInput(char* dest)
 {
-	char buffer[256];
-	gets_s(buffer, 256); //Note: gets_s returns a null terminated string
+	char buffer[2048];
+	gets_s(buffer, 2048);
 	strcopy(dest, buffer);
 }
 

@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "lexer.h"
+#include "ast.h"
 
 enum DataType
 {
@@ -23,10 +24,6 @@ enum DataType
 	DT_OTHER
 };
 
-//Note: 2 approaches, crate a seperate dictionary for each type, or use a void*
-// pointer and cast based on the input. First approach seems safer, second is more flexible,
-// but if a user inputs char for a value that is supposed to be int, then problems will occur.
-
 struct TokenDictionaryItem
 {
 	char const * key;
@@ -34,9 +31,20 @@ struct TokenDictionaryItem
 	char* datatype;
 };
 
+class Parser
+{
+public:
+	TokenArray Tokens;
+	int CurTok;
+	int Count;
+	Parser(TokenArray tokens);
 
-void ParseChangeExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count);
-void ParseListExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count);
-void ParseExpression(Token *tokens, int token_count, TokenDictionaryItem *dict, int dict_count);
+	static std::unique_ptr<ExprAST> ParseExpression();
+	void outputVals();
+private:
+	std::unique_ptr<ExprAST> LogError(const char* Str);
+	std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
+	Token getNextToken();
+};
 
 #endif

@@ -8,7 +8,6 @@
 #include <iostream>
 #include <cstdio>
 
-
 using namespace std;
 
 int main()
@@ -24,8 +23,6 @@ int main()
 	int another_int = 7;
 	int my_int = 5;
 
-	char input[256];
-	GetInput(input);
 
 	TokenDictionaryItem token_dict[] =
 		{
@@ -36,12 +33,23 @@ int main()
 			{VarToString(my_str), &my_str, const_cast<char*>("string")}};
 
 
-	if (!input)
-		printf("no input string recieved\n");
+	while (running)
+	{
+		char input[2048];
+		GetInput(input);
 
-	TokenArray token_array = LexInput(input);	
-	ParseExpression(token_array.tokens, token_array.count, token_dict, ArrayCount(token_dict));
-	DebugPrintTokenArray(token_array);
-	DeleteTokens(token_array);
+		if (!input)
+			printf("no input string recieved\n");
+
+		TokenArray token_array = LexInput(input);
+		DebugPrintTokenArray(token_array);
+
+		auto parser = Parser::Parser(token_array);
+		parser.outputVals();
+		//ParseExpression(token_array.tokens, token_array.count, token_dict, ArrayCount(token_dict));
+	}
+
+	//DebugPrintTokenArray(token_array);
+	//DeleteTokens(token_array);
 	return 0;
 }

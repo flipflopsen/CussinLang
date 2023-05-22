@@ -45,10 +45,12 @@ enum TokenType
 	TokenType_SEMICOLON,
 	TokenType_COMMA,
 	TokenType_BECOMES,
+	TokenType_COLON,
 
 	//Function Keywords
 	TokenType_FN,
 	TokenType_RETURN,
+	TokenType_RETSTMT,
 
 	//Keywords
 	TokenType_IF,
@@ -70,6 +72,13 @@ enum TokenType
 	TokenType_LET,
 	TokenType_DELETE,
 	TokenType_NULL,
+
+	//Python like boolean
+	TokenType_IN,
+	TokenType_IS,
+	TokenType_AND,
+	TokenType_OR,
+	TokenType_XOR,
 
 	//Unique
 	TokenType_UNKNOWN,
@@ -117,6 +126,8 @@ void ResizeTokenArray(TokenArray& token_array, unsigned int size);
 TokenArray LexInput(char* input);
 
 void DebugPrintTokenArray(TokenArray token_array);
+
+char const* TokenTypeToString(TokenType type);
 
 
 #endif

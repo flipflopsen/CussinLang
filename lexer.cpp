@@ -72,27 +72,163 @@ Token GetToken(Tokenizer& tokenizer)
 		strcopy(str, "EndSymbol");
 		token.contents = str;
 	} break;
+	case ':':
+	{
+		token.type = TokenType_COLON;
+		char* str = new char[4];
+		strcopy(str, ":");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '(':
+	{
+		token.type = TokenType_LPAREN;
+		char* str = new char[4];
+		strcopy(str, "(");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case ')':
+	{
+		token.type = TokenType_RPAREN;
+		char* str = new char[4];
+		strcopy(str, ")");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '{':
+	{
+		token.type = TokenType_LBRACE;
+		char* str = new char[4];
+		strcopy(str, "{");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '}':
+	{
+		token.type = TokenType_RBRACE;
+		char* str = new char[4];
+		strcopy(str, "}");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '[':
+	{
+		token.type = TokenType_LBRACK;
+		char* str = new char[4];
+		strcopy(str, "[");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case ']':
+	{
+		token.type = TokenType_RBRACK;
+		char* str = new char[4];
+		strcopy(str, "]");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
 
-	case '(': token.type = TokenType_LPAREN; break;
-	case ')': token.type = TokenType_RPAREN; break;
-	case '{': token.type = TokenType_LBRACE; break;
-	case '}': token.type = TokenType_RBRACE; break;
-	case '[': token.type = TokenType_LBRACK; break;
-	case ']': token.type = TokenType_RBRACK; break;
+	case '+':
+	{
+		token.type = TokenType_PLUS;
+		char* str = new char[4];
+		strcopy(str, "+");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '-':
+	{
+		tokenizer.location++;
+		if (tokenizer.location[0] == '>')
+		{
+			token.type = TokenType_RETSTMT;
+			char* str = new char[4];
+			strcopy(str, "->");
+			token.contents = str;
+			tokenizer.location++;
+			break;
+		}
+		token.type = TokenType_MINUS;
+		char* str = new char[4];
+		strcopy(str, "-");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '*':
+	{
+		token.type = TokenType_TIMES;
+		char* str = new char[4];
+		strcopy(str, "*");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '/':
+	{
+		token.type = TokenType_SLASH;
+		char* str = new char[4];
+		strcopy(str, "/");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
 
-	case '+': token.type = TokenType_PLUS; break;
-	case '-': token.type = TokenType_MINUS; break;
-	case '*': token.type = TokenType_TIMES; break;
-	case '/': token.type = TokenType_SLASH; break;
+	case ';':
+	{
+		token.type = TokenType_SEMICOLON;
+		char* str = new char[4];
+		strcopy(str, ";");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case ',':
+	{
+		token.type = TokenType_COMMA;
+		char* str = new char[4];
+		strcopy(str, ",");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '.':
+	{
+		token.type = TokenType_PERIOD;
+		char* str = new char[4];
+		strcopy(str, ".");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
 
-	case ';': token.type = TokenType_SEMICOLON; break;
-	case ',': token.type = TokenType_COMMA; break;
-	case '.': token.type = TokenType_PERIOD; break;
-
-	case '=': token.type = TokenType_EQL; break;
-	case '>': token.type = TokenType_GRT; break;
-	case '<': token.type = TokenType_LSS; break;
-	case '!': token.type = TokenType_NOT; break;
+	case '=':
+	{
+		token.type = TokenType_EQL;
+		char* str = new char[4];
+		strcopy(str, "=");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '>':
+	{
+		token.type = TokenType_GRT;
+		char* str = new char[4];
+		strcopy(str, ">");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '<':
+	{
+		token.type = TokenType_LSS;
+		char* str = new char[4];
+		strcopy(str, "<");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
+	case '!':
+	{
+		token.type = TokenType_NOT;
+		char* str = new char[4];
+		strcopy(str, "!");
+		token.contents = str;
+		tokenizer.location++;
+	} break;
 
 		//TODO: single quotes are skipped for now
 		//NOTE: should everything in the quotes be a single token, 
@@ -151,7 +287,7 @@ Token GetToken(Tokenizer& tokenizer)
 				tokenizer.location++;
 				token.length++;
 				//TODO: should we limit ourselves?
-				if (token.length == 255) break;
+				if (token.length == 2049) break;
 			}
 			token.contents = new char[token.length + 1];
 			int iterator = 0;
@@ -164,6 +300,31 @@ Token GetToken(Tokenizer& tokenizer)
 			token.contents[token.length] = '\0';
 
 			// Once we have an identifier, we can check if it matches a keyword
+			if (strcompare(token.contents, "in"))
+			{
+				token.type = TokenType_IN;
+				break;
+			}
+			if (strcompare(token.contents, "is"))
+			{
+				token.type = TokenType_IS;
+				break;
+			}
+			if (strcompare(token.contents, "and"))
+			{
+				token.type = TokenType_AND;
+				break;
+			}
+			if (strcompare(token.contents, "or"))
+			{
+				token.type = TokenType_OR;
+				break;
+			}
+			if (strcompare(token.contents, "xor"))
+			{
+				token.type = TokenType_XOR;
+				break;
+			}
 			if (strcompare(token.contents, "struct"))
 			{
 				token.type = TokenType_STRUCT;
@@ -339,7 +500,7 @@ TokenArray LexInput(char* input)
 	bool lexing = true;
 
 	TokenArray token_array = {};
-	InitializeTokenArray(token_array, 10);
+	InitializeTokenArray(token_array, 30);
 
 	while (lexing)
 	{
@@ -368,9 +529,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_IDENTIFIER:
 		return "Identifier";
 	case TokenType_STRUCT:
-	case TokenType_UN:
 	case TokenType_ENUM:
-	case TokenTyper_UNENUM:
 		return "Datastruct";
 	case TokenType_CONST:
 	case TokenType_SHORT:
@@ -392,6 +551,11 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_GRT:
 	case TokenType_LEQ:
 	case TokenType_GEQ:
+	case TokenType_IN:
+	case TokenType_AND:
+	case TokenType_OR:
+	case TokenType_XOR:
+	case TokenType_IS:
 		return "Operator";
 	case TokenType_LPAREN:
 	case TokenType_RPAREN:
@@ -402,6 +566,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_SEMICOLON:
 	case TokenType_COMMA:
 	case TokenType_BECOMES:
+	case TokenType_COLON:
 		return "Seperator";
 	case TokenType_FN:
 	case TokenType_IF:
@@ -423,6 +588,8 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_DELETE:
 	case TokenType_NULL:
 		return "Keyword";
+	case TokenType_RETSTMT:
+		return "Return specification strongly";
 	case TokenType_EOF:
 		return "EndOfStream";
 	case TokenType_UNKNOWN:

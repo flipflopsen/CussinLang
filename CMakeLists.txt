@@ -31,24 +31,25 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set(TARGET_64 ON)
 endif()
 
+set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
 # import LLVM
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-llvm_map_components_to_libnames(llvm_libs
-	Analysis
-	Core
-	ExecutionEngine
-	InstCombine
-	Object
-	PrcJIT
-	RuntimeDyld
-	ScalarOpts
-	Support
-	native
+llvm_map_components_to_libnames(llvm_libs#
+	#Analysis
+	#Core
+	#ExecutionEngine
+	#InstCombine
+	#Object
+	#PrcJIT
+	#RuntimeDyld
+	#ScalarOpts
+	#Support
+	#native
 )
 
-target_link_libraries(CussingLangImpl {llvm_libs})
+target_link_libraries(CussingLangImpl ${llvm_libs})
 
 # TODO: Add tests and install targets if needed.
