@@ -5,6 +5,7 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
+#include "codegen.h"
 #include <iostream>
 #include <cstdio>
 
@@ -16,6 +17,7 @@ int main()
 
 	bool running = true;
 
+	InitializeModule();
 
 	while (running)
 	{
@@ -31,6 +33,7 @@ int main()
 		auto parser = Parser::Parser(token_array);
 		//parser.outputVals();
 		parser.Parse();
+
 		//ParseExpression(token_array.tokens, token_array.count, token_dict, ArrayCount(token_dict));
 		DeleteTokens(token_array);
 	}

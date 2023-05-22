@@ -3,4 +3,7 @@
 
 #include "ast.h"
 
+
+void InitializeModule();
+
 #endif

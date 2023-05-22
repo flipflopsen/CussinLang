@@ -92,7 +92,7 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 	std::string IdName = Tokens.tokens[Position - 1].contents;
 	std::vector<std::unique_ptr<ExprAST>> Args;
 
-	if (CurTok != TokenType_SEMICOLON && IsOperator(Tokens.tokens[Position].type))
+	if (CurTok != TokenType_SEMICOLON && (IsOperator(Tokens.tokens[Position].type) || Tokens.tokens[Position].type == TokenType_SEMICOLON))
 		return std::make_unique<VariableExprAST>(IdName);
 	
 
@@ -100,12 +100,6 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 
 	while (true)
 	{
-		if (CurTok == TokenType_SEMICOLON)
-		{
-			printf("[PARSER] Encountered ';' \n");
-			break;
-		}
-
 		if (auto Arg = ParseExpression())
 		{
 			printf("[PARSER] Parsed token with val: %d\n", CurTok);
@@ -116,6 +110,15 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 			printf("[PARSER-ERROR] Failed to parse expression tok %d\n", CurTok);
 			return nullptr;
 		}
+
+		if (CurTok == TokenType_SEMICOLON)
+		{
+			printf("[PARSER] Encountered ';' \n");
+			break;
+		}
+
+		if (CurTok != TokenType_COMMA)
+			return LogError("Expected ')' or ',' in argument list");
 
 		getNextToken();
 	}
@@ -185,7 +188,8 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype()
 	Token nextToken = getNextToken();
 	while (nextToken.type != TokenType_RPAREN)
 	{
-		ArgNames.push_back(nextToken.contents);
+		if (nextToken.type != TokenType_COMMA)
+			ArgNames.push_back(nextToken.contents);
 		nextToken = getNextToken();
 	}
 
@@ -243,24 +247,45 @@ std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 
 void Parser::HandleDefinition()
 {
-	printf("[PARSER-Init] Parsing Definition");
-	if (ParseFnDef())
-	{
-		fprintf(stderr, "[PARSER-Done] Parsed function definition.\n");
+
+	CodegenVisitor visitor;
+
+	printf("[PARSER-Init] Parsing Definition\n");
+
+	if (auto FnAST = ParseFnDef()) {
+		fprintf(stderr, "Got FnAST in def\n");
+		if (auto* FnIR = FnAST->accept(&visitor)) {
+			fprintf(stderr, "Read function definition:");
+			FnIR->print(errs());
+			fprintf(stderr, "\n");
+		}
 	}
-	else
-	{
+	else {
+		// Skip token for error recovery.
 		getNextToken();
 	}
 }
 
 void Parser::HandleTopLevelExpression()
 {
+
+	CodegenVisitor visitor;
+
 	printf("[PARSER-Init] Parsing TLE.\n");
-	if (ParseTopLevelExpr()) {
-		fprintf(stderr, "[PARSER-Done] Parsed a TLE.\n");
+
+	if (auto FnAST = ParseTopLevelExpr()) {
+		fprintf(stderr, "Got FnAST\n");
+		if (auto* FnIR = FnAST->accept(&visitor)) {
+			fprintf(stderr, "Read top-level expression:");
+			FnIR->print(errs());
+			fprintf(stderr, "\n");
+
+			// Remove the anonymous expression.
+			FnIR->eraseFromParent();
+		}
 	}
 	else {
+		// Skip token for error recovery.
 		getNextToken();
 	}
 }
