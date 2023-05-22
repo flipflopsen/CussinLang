@@ -22,6 +22,8 @@ public:
 /// VariableExprAST - Expression class for referencing a variable, like "a".
 class VariableExprAST : public ExprAST {
 	std::string Name;
+public:
+	VariableExprAST(const std::string& Name) : Name(Name) {}
 };
 
 
@@ -53,14 +55,12 @@ public:
 class PrototypeAST {
 	std::string Name;
 	std::vector<std::string> Args;
-	std::string ReturnType;
 
 public:
-	PrototypeAST(const std::string& Name, std::vector<std::string> Args, const std::string& ReturnType)
-		: Name(Name), Args(std::move(Args)), ReturnType(ReturnType) {}
+	PrototypeAST(const std::string& Name, std::vector<std::string> Args)
+		: Name(Name), Args(std::move(Args)) {}
 
 	const std::string& getName() const { return Name; }
-	const std::string& getReturnType() const { return ReturnType; }
 };
 
 

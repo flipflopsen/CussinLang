@@ -17,6 +17,8 @@ enum TokenType
 
 	//Literals
 	TokenType_DIGIT,
+	TokenType_I64,
+	TokenType_I32,
 	TokenType_FLOAT,
 	TokenType_STRING,
 	TokenType_BOOL,
@@ -81,8 +83,8 @@ enum TokenType
 	TokenType_XOR,
 
 	//Unique
-	TokenType_UNKNOWN,
-	TokenType_EOF
+	TokenType_UNKNOWN = -2,
+	TokenType_EOF = -1,
 };
 
 struct Token

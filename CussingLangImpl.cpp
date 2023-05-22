@@ -16,26 +16,10 @@ int main()
 
 	bool running = true;
 
-	// Modifiable Values
-	int third_int = 9;
-	char my_char = 'c';
-	char my_str[] = "Test String";
-	int another_int = 7;
-	int my_int = 5;
-
-
-	TokenDictionaryItem token_dict[] =
-		{
-			{VarToString(my_int), &my_int, const_cast<char*>("int")},
-			{VarToString(another_int), &another_int, const_cast<char*>("int")},
-			{VarToString(third_int), &third_int, const_cast<char*>("int")},
-			{VarToString(*my_char), &my_char, const_cast<char*>("char")},
-			{VarToString(my_str), &my_str, const_cast<char*>("string")}};
-
 
 	while (running)
 	{
-		char input[2048];
+		char input[4096];
 		GetInput(input);
 
 		if (!input)
@@ -45,11 +29,10 @@ int main()
 		DebugPrintTokenArray(token_array);
 
 		auto parser = Parser::Parser(token_array);
-		parser.outputVals();
+		//parser.outputVals();
+		parser.Parse();
 		//ParseExpression(token_array.tokens, token_array.count, token_dict, ArrayCount(token_dict));
+		DeleteTokens(token_array);
 	}
-
-	//DebugPrintTokenArray(token_array);
-	//DeleteTokens(token_array);
 	return 0;
 }

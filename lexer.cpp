@@ -300,6 +300,16 @@ Token GetToken(Tokenizer& tokenizer)
 			token.contents[token.length] = '\0';
 
 			// Once we have an identifier, we can check if it matches a keyword
+			if (strcompare(token.contents, "i64"))
+			{
+				token.type = TokenType_I64;
+				break;
+			}
+			if (strcompare(token.contents, "i32"))
+			{
+				token.type = TokenType_I32;
+				break;
+			}
 			if (strcompare(token.contents, "in"))
 			{
 				token.type = TokenType_IN;
@@ -437,8 +447,6 @@ Token GetToken(Tokenizer& tokenizer)
 			{
 				tokenizer.location++;
 				token.length++;
-				//TODO: should we limit ourselves, avoid overflowing integers
-				// by accident?
 
 				//Look forward 1 charachter for the . operator for floats
 				if (tokenizer.location[0] == '.')
@@ -500,7 +508,7 @@ TokenArray LexInput(char* input)
 	bool lexing = true;
 
 	TokenArray token_array = {};
-	InitializeTokenArray(token_array, 30);
+	InitializeTokenArray(token_array, 128);
 
 	while (lexing)
 	{
@@ -536,6 +544,8 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_UNSIGNED:
 		return "Modifier";
 	case TokenType_DIGIT:
+	case TokenType_I32:
+	case TokenType_I64:
 	case TokenType_FLOAT:
 	case TokenType_STRING:
 	case TokenType_BOOL:
@@ -602,7 +612,7 @@ void DebugPrintTokenArray(TokenArray token_array)
 	//TODO: Print token type enum
 	for (int i = 0; i < token_array.count; i++)
 	{
-		printf("Token %i: %s - %s \n", i, TokenTypeToString(token_array.tokens[i].type),
+		printf("[LEXER] Token %i: %s - %s \n", i, TokenTypeToString(token_array.tokens[i].type),
 			token_array.tokens[i].contents);
 	}
 }

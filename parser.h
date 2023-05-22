@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "ast.h"
+#include <map>
 
 enum DataType
 {
@@ -37,14 +38,42 @@ public:
 	TokenArray Tokens;
 	int CurTok;
 	int Count;
+	int Position;
+	std::map<char, int> BinopPrecedence;
+
 	Parser(TokenArray tokens);
 
-	static std::unique_ptr<ExprAST> ParseExpression();
+	void Parse();
+
+	// Debug
 	void outputVals();
 private:
+	// Binary operations
+	int GetTokenPrecedence();
+
+	// Parsers
+	std::unique_ptr<ExprAST> ParseExpression();
+	std::unique_ptr<ExprAST> ParsePrimary();
+	std::unique_ptr<ExprAST> ParseNumberExpr();
+	std::unique_ptr<ExprAST> ParseIdentifierExpr();
+	std::unique_ptr<ExprAST> ParseParenExpr();
+	std::unique_ptr<ExprAST> ParseBraceExpr();
+	std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
+	std::unique_ptr<PrototypeAST> ParsePrototype();
+	std::unique_ptr<FunctionAST> ParseFnDef();
+	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
+
+	// Handlers
+	void HandleDefinition();
+	void HandleTopLevelExpression();
+
+	// Helpers
 	std::unique_ptr<ExprAST> LogError(const char* Str);
 	std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
+
+	// Access to token buf
 	Token getNextToken();
+	bool IsOperator(int type);
 };
 
 #endif
