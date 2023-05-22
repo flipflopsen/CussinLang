@@ -76,7 +76,7 @@ Function *CodegenVisitor::visit(FunctionAST* ast)
 Value *NumberExprAST::codegen()
 { 
 	printf("Performing code generation for NumberExprAST.\n");
-	return ConstantFP::get(*TheContext, APFloat(Val));
+	return ConstantInt::get(*TheContext, APInt(64, Val));
 }
 
 Value *VariableExprAST::codegen()
@@ -96,18 +96,20 @@ Value *BinaryExprAST::codegen()
 	Value* L = LHS->accept(&visitor);
 	Value* R = RHS->accept(&visitor);
 	if (!L || !R)
+	{
 		printf("Returning nullptr\n");
 		return nullptr;
+	}
 
 	printf("Operator: %c\n", Op);
 
 	switch (Op) {
 	case '+':
-		return BuilderPtr->CreateFAdd(L, R, "addtmp");
+		return BuilderPtr->CreateAdd(L, R, "addtmp");
 	case '-':
-		return BuilderPtr->CreateFSub(L, R, "subtmp");
+		return BuilderPtr->CreateSub(L, R, "subtmp");
 	case '*':
-		return BuilderPtr->CreateFMul(L, R, "multmp");
+		return BuilderPtr->CreateMul(L, R, "multmp");
 	case '<':
 		L = BuilderPtr->CreateFCmpULT(L, R, "cmptmp");
 		// Convert bool 0/1 to double 0.0 or 1.0
