@@ -67,9 +67,6 @@ private:
 	void HandleDefinition();
 	void HandleTopLevelExpression();
 
-	// Helpers
-	std::unique_ptr<ExprAST> LogError(const char* Str);
-	std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
 
 	// Access to token buf
 	Token getNextToken();

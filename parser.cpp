@@ -4,6 +4,9 @@
 #include "util.h"
 #include <map>
 
+std::unique_ptr<ExprAST> LogError(const char* Str);
+std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
+
 
 Parser::Parser(TokenArray tokens)
 {
@@ -263,18 +266,6 @@ void Parser::HandleTopLevelExpression()
 }
 
 
-// Helpers
-
-std::unique_ptr<ExprAST> Parser::LogError(const char* Str) {
-	fprintf(stderr, "[PARSER-ERROR] %s\n", Str);
-	return nullptr;
-}
-std::unique_ptr<PrototypeAST> Parser::LogErrorP(const char* Str) {
-	LogError(Str);
-	return nullptr;
-}
-
-
 // Getter for Tokens buf
 
 Token Parser::getNextToken()
@@ -317,6 +308,18 @@ void Parser::outputVals()
 		i++;
 	}
 }
+
+
+std::unique_ptr<ExprAST> LogError(const char* Str) {
+	fprintf(stderr, "[PARSER-ERROR] %s\n", Str);
+	return nullptr;
+}
+
+std::unique_ptr<PrototypeAST> LogErrorP(const char* Str) {
+	LogError(Str);
+	return nullptr;
+}
+
 
 bool Parser::IsOperator(int type)
 {

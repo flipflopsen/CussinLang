@@ -20,13 +20,15 @@ set(SOURCES
 		util.h
 		CussingLangImpl.cpp
 		CussingLangImpl.h
+		codegen.h
+		codegen.cpp
 	)
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 20)
+  set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
   set(BUILD_ARCH "-m64")
   set(TARGET_64 ON)
 endif()

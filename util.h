@@ -10,7 +10,6 @@
 
 inline bool strcompare(char* first, char const* second)
 {
-	bool result;
 
 	for (int i = 0; first[i] != '\0' || second[i] != '\0'; i++)
 	{
