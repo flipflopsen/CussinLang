@@ -2,6 +2,7 @@
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
+#include <iostream>
 
 using namespace llvm;
 
@@ -15,9 +16,8 @@ Value* LogErrorV(const char* Str) {
 }
 
 static std::unique_ptr<LLVMContext> TheContext;
-static IRBuilder<> Builder(*TheContext);
-static std::unique_ptr<IRBuilder<>> BuilderPtr(&Builder);
 static std::unique_ptr<Module> TheModule;
+static std::unique_ptr<IRBuilder<>> Builder;
 static std::map<std::string, Value*> NamedValues;
 
 // Visitor implementations
@@ -105,15 +105,15 @@ Value *BinaryExprAST::codegen()
 
 	switch (Op) {
 	case '+':
-		return BuilderPtr->CreateAdd(L, R, "addtmp");
+		return Builder->CreateAdd(L, R, "addtmp");
 	case '-':
-		return BuilderPtr->CreateSub(L, R, "subtmp");
+		return Builder->CreateSub(L, R, "subtmp");
 	case '*':
-		return BuilderPtr->CreateMul(L, R, "multmp");
+		return Builder->CreateMul(L, R, "multmp");
 	case '<':
-		L = BuilderPtr->CreateFCmpULT(L, R, "cmptmp");
+		L = Builder->CreateFCmpULT(L, R, "cmptmp");
 		// Convert bool 0/1 to double 0.0 or 1.0
-		return BuilderPtr->CreateUIToFP(L, Type::getDoubleTy(*TheContext),
+		return Builder->CreateUIToFP(L, Type::getDoubleTy(*TheContext),
 			"booltmp");
 	default:
 		return LogErrorV("invalid binary operator");
@@ -140,16 +140,16 @@ Value *CallExprAST::codegen()
 			return nullptr;
 	}
 
-	return BuilderPtr->CreateCall(CalleeF, ArgsV, "calltmp");
+	return Builder->CreateCall(CalleeF, ArgsV, "calltmp");
 }
 
 Function *PrototypeAST::codegen()
 {
 	printf("Performing code generation for PrototypeAST.\n");
 
-	llvm::Type* returnType = llvm::Type::getInt64Ty(*TheContext);
+	Type* returnType = Type::getInt64Ty(*TheContext);
 
-	std::vector<llvm::Type*> paramTypes;
+	std::vector<Type*> paramTypes;
 	for (const auto& arg : Args) {
 		// Assuming all parameter types are i64 for this example
 		paramTypes.push_back(llvm::Type::getInt64Ty(*TheContext));
@@ -157,10 +157,10 @@ Function *PrototypeAST::codegen()
 
 
 	// Create the function type
-	llvm::FunctionType* functionType = llvm::FunctionType::get(returnType, paramTypes, false);
+	FunctionType* functionType = FunctionType::get(returnType, paramTypes, false);
 
 	// Create the function
-	llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, Name, TheModule.get());
+	Function* function = Function::Create(functionType, Function::ExternalLinkage, Name, TheModule.get());
 
 	// Set names for the function parameters
 	llvm::Function::arg_iterator argIterator = function->arg_begin();
@@ -188,13 +188,13 @@ Function *FunctionAST::codegen()
 		return nullptr;
 
 	if (!TheFunction->empty())
-		return (Function*)LogErrorV("Function cannot be redefined.");
+		return static_cast<Function*>(LogErrorV("Function cannot be redefined."));
 
 
 	// Create a new basic block in the function
 	BasicBlock* basicBlock = BasicBlock::Create(*TheContext, "entry", TheFunction);
 
-	BuilderPtr->SetInsertPoint(basicBlock);
+	Builder->SetInsertPoint(basicBlock);
 
 	// Record the function arguments in the NamedValues map.
 	NamedValues.clear();
@@ -211,10 +211,24 @@ Function *FunctionAST::codegen()
 	if (Value* RetVal = Body->accept(&visitor)) {
 		// Finish off the function.
 		printf("Finishing off function!\n");
-		BuilderPtr->CreateRet(RetVal);
+		if (Builder != nullptr)
+		{
+			Builder->CreateRet(RetVal);
 
-		// Validate the generated code, checking for consistency.
-		verifyFunction(*TheFunction);
+			if (TheFunction != nullptr)
+			{
+				verifyFunction(*TheFunction);
+			}
+			else
+			{
+				printf("TheFunction is null!\n");
+			}
+		}
+		else
+		{
+			printf("BuilderPtr is null!\n");
+		}
+
 
 		return TheFunction;
 	}
@@ -229,6 +243,9 @@ Function *FunctionAST::codegen()
 void InitializeModule() {
 	// Open a new context and module.
 	TheContext = std::make_unique<LLVMContext>();
-	TheModule = std::make_unique<Module>("my cool jit", *TheContext);
+	TheModule = std::make_unique<Module>("cussinJIT", *TheContext);
+
+	// Create a new builder for the module.
+	Builder = std::make_unique<IRBuilder<>>(*TheContext);
 
 }

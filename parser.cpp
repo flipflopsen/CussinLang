@@ -66,7 +66,7 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	case TokenType_RBRACE:
 		printf("[PARSER] Parsing of Body is done!\n");
 		return nullptr;
-	case TokenType_LPAREN || TokenType_RPAREN:
+	case TokenType_LPAREN:
 		printf("[PARSER] Parsing Paren Expression\n");
 		return ParseParenExpr();
 	case TokenType_EOF:
@@ -82,45 +82,55 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 
 std::unique_ptr<ExprAST> Parser::ParseNumberExpr()
 {
-	auto Result = std::make_unique<NumberExprAST>(strtoint(Tokens.tokens[Position - 1].contents));
-	getNextToken(); 
+	auto token = Tokens.tokens[Position - 1].contents;
+	fprintf(stderr, "[PARSER-NR] Parsing number expression for token: %s\n", token);
+	auto Result = std::make_unique<NumberExprAST>(strtoint(token));
 	return std::move(Result);
 }
 
 std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 {
 	std::string IdName = Tokens.tokens[Position - 1].contents;
-	std::vector<std::unique_ptr<ExprAST>> Args;
 
-	if (CurTok != TokenType_SEMICOLON && (IsOperator(Tokens.tokens[Position].type) || Tokens.tokens[Position].type == TokenType_SEMICOLON))
+	auto lookahead = Tokens.tokens[Position];
+
+	// This is vor single vars
+	if ((CurTok != TokenType_SEMICOLON && 
+		(IsOperator(lookahead.type) || lookahead.type == TokenType_SEMICOLON) &&
+		lookahead.type != TokenType_LPAREN) || lookahead.type == TokenType_RPAREN)
 		return std::make_unique<VariableExprAST>(IdName);
 	
-
+	// If we're here, it's a function call
 	getNextToken();
 
-	while (true)
+	std::vector<std::unique_ptr<ExprAST>> Args;
+
+	if (CurTok != TokenType_RPAREN)
 	{
-		if (auto Arg = ParseExpression())
+		while (true)
 		{
-			printf("[PARSER] Parsed token with val: %d\n", CurTok);
-			Args.push_back(std::move(Arg));
-		}
-		else
-		{
-			printf("[PARSER-ERROR] Failed to parse expression tok %d\n", CurTok);
-			return nullptr;
-		}
+			if (auto Arg = ParseExpression())
+			{
+				printf("[PARSER-IDENT] Parsed token with val: %d\n", CurTok);
+				Args.push_back(std::move(Arg));
+			}
+			else
+			{
+				printf("[PARSER-IDENT-ERROR] Failed to parse call for tok %d\n", CurTok);
+				return nullptr;
+			}
 
-		if (CurTok == TokenType_SEMICOLON)
-		{
-			printf("[PARSER] Encountered ';' \n");
-			break;
+			if (CurTok == TokenType_RPAREN)
+			{
+				printf("[PARSER-IDENT] Encountered ';' \n");
+				break;
+			}
+
+			if (CurTok != TokenType_COMMA)
+				return LogError("Expected ')' or ',' in argument list");
+
+			getNextToken();
 		}
-
-		if (CurTok != TokenType_COMMA)
-			return LogError("Expected ')' or ',' in argument list");
-
-		getNextToken();
 	}
 	
 
@@ -131,7 +141,15 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseParenExpr()
 {
-	return nullptr;
+	getNextToken(); // eat (.
+	auto V = ParseExpression();
+	if (!V)
+		return nullptr;
+
+	if (Tokens.tokens[Position].type != TokenType_RPAREN)
+		return LogError("expected ')'");
+	getNextToken(); // eat ).
+	return V;
 }
 
 std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
@@ -288,6 +306,11 @@ void Parser::HandleTopLevelExpression()
 		// Skip token for error recovery.
 		getNextToken();
 	}
+}
+
+void DebugAST()
+{
+	
 }
 
 

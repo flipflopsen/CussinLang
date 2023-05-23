@@ -21,6 +21,7 @@ int main()
 
 	while (running)
 	{
+		fprintf(stderr, "ready> ");
 		char input[4096];
 		GetInput(input);
 
@@ -35,7 +36,7 @@ int main()
 		parser.Parse();
 
 		//ParseExpression(token_array.tokens, token_array.count, token_dict, ArrayCount(token_dict));
-		DeleteTokens(token_array);
+		//DeleteTokens(token_array);
 	}
 	return 0;
 }
