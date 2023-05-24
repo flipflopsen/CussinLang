@@ -30,7 +30,8 @@ void Parser::Parse()
 		case TokenType_EOF:
 			return;
 		case TokenType_SEMICOLON:
-			//getNextToken();
+			printf("Got semicolon !\n");
+			getNextToken();
 			break;
 		case TokenType_FN:
 			HandleDefinition();
@@ -60,8 +61,9 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	
 	switch (CurTok) {
 	case TokenType_SEMICOLON:
+		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
-		return nullptr;
+		return ParseExpression();
 	case TokenType_IDENTIFIER:
 		printf("[PARSER] Parsing Identifier Expression\n");
 		return ParseIdentifierExpr();
@@ -199,7 +201,8 @@ std::unique_ptr<ExprAST> Parser::ParseParenExpr()
 	if (CurTok != TokenType_RPAREN)
 		return LogError("Expected ')'");
 
-	getNextToken();  // Consume ')'
+
+	//getNextToken();  // Consume ')'
 	return expr;
 }
 
@@ -331,9 +334,9 @@ void Parser::HandleDefinition()
 	printf("[PARSER-Init] Parsing Definition\n");
 
 	if (auto FnAST = ParseFnDef()) {
-		fprintf(stderr, "Got FnAST in def\n");
+		fprintf(stderr, "[PARSER-DONE] Got FnAST\n");
 		if (auto* FnIR = FnAST->accept(&visitor)) {
-			fprintf(stderr, "Read function definition:");
+			fprintf(stderr, "[PARSER-CG-DONE] Read function definition: \n");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
 		}
@@ -352,9 +355,9 @@ void Parser::HandleTopLevelExpression()
 	printf("[PARSER-Init] Parsing TLE.\n");
 
 	if (auto FnAST = ParseTopLevelExpr()) {
-		fprintf(stderr, "Got FnAST\n");
+		fprintf(stderr, "[PARSER-DONE] Got TLE-AST\n");
 		if (auto* FnIR = FnAST->accept(&visitor)) {
-			fprintf(stderr, "Read top-level expression:");
+			fprintf(stderr, "[PARSER-CG-DONE] Read top-level expression: \n");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
 

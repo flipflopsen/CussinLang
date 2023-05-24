@@ -22,10 +22,11 @@ int main()
 
 	const std::vector<std::string> inputs =
 	{
-		"fn foo(a, b) -> i64 { a + ( 2 * b ); }",
-		"fn bar(a) -> i64 { foo(a, 2) + bar(1331); }",
+		//"fn foo(a, b) -> i64 { a + ( 2 * b ); }",
+		//"fn bar(a) -> i64 { foo(a, 2) + bar(1331); }",
 		//"fn test(x) -> i64 { (1 + 2) + x; }",
-		"fn test(x) -> i64 { (1 + 2 + x); }"
+		"fn test(x) -> i64 { (1 + 2 + x); (3 + 4 + x); }",
+		//"fn test2(x) -> i64 { (1+2+x)*(x+(1+2)); }"
 		//"fn test(x) -> i64 {4 + 5;}"
 	};
 

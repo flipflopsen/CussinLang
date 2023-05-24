@@ -24,49 +24,49 @@ static std::map<std::string, Value*> NamedValues;
 
 Value *CodegenVisitor::visit(NumberExprAST* ast)
 {
-	printf("CodegenVisitor is visiting NumberExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting NumberExprAST\n");
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 Value *CodegenVisitor::visit(VariableExprAST* ast)
 {
-	printf("CodegenVisitor is visiting VariableExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting VariableExprAST\n");
 
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 Value *CodegenVisitor::visit(BinaryExprAST* ast)
 {
-	printf("CodegenVisitor is visiting BinaryExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting BinaryExprAST\n");
 
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 Value *CodegenVisitor::visit(CallExprAST* ast)
 {
-	printf("CodegenVisitor is visiting CallExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting CallExprAST\n");
 
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 Function *CodegenVisitor::visit(PrototypeAST* ast)
 {
-	printf("CodegenVisitor is visiting PrototypeAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting PrototypeAST\n");
 
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 Function *CodegenVisitor::visit(FunctionAST* ast)
 {
-	printf("CodegenVisitor is visiting FunctionAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting FunctionAST\n");
 
 	auto ret = ast->codegen();
-	TheModule->print(errs(), nullptr);
+	//TheModule->print(errs(), nullptr);
 	return ret;
 }
 
@@ -75,13 +75,13 @@ Function *CodegenVisitor::visit(FunctionAST* ast)
 
 Value *NumberExprAST::codegen()
 { 
-	printf("Performing code generation for NumberExprAST.\n");
+	printf("[CODEGEN] Performing code generation for NumberExprAST.\n");
 	return ConstantInt::get(*TheContext, APInt(64, Val));
 }
 
 Value *VariableExprAST::codegen()
 {
-	printf("Performing code generation for VariableExprAST.\n");
+	printf("[CODEGEN] Performing code generation for VariableExprAST.\n");
 	Value* V = NamedValues[Name];
 	if (!V)
 		LogErrorV("Unknown variable name");
@@ -92,7 +92,7 @@ Value *BinaryExprAST::codegen()
 {
 	CodegenVisitor visitor;
 
-	printf("Performing code generation for BinaryExprAST.\n");
+	printf("[CODEGEN] Performing code generation for BinaryExprAST.\n");
 	Value* L = LHS->accept(&visitor);
 	Value* R = RHS->accept(&visitor);
 	if (!L || !R)
@@ -100,8 +100,6 @@ Value *BinaryExprAST::codegen()
 		printf("Returning nullptr\n");
 		return nullptr;
 	}
-
-	printf("Operator: %c\n", Op);
 
 	switch (Op) {
 	case '+':
@@ -124,7 +122,7 @@ Value *CallExprAST::codegen()
 {
 	CodegenVisitor visitor;
 
-	printf("Performing code generation for CallExprAST.\n");
+	printf("[CODEGEN] Performing code generation for CallExprAST.\n");
 	Function* CalleeF = TheModule->getFunction(Callee);
 	if (!CalleeF)
 		return LogErrorV("Unknown function referenced");
@@ -145,7 +143,7 @@ Value *CallExprAST::codegen()
 
 Function *PrototypeAST::codegen()
 {
-	printf("Performing code generation for PrototypeAST.\n");
+	printf("[CODEGEN] Performing code generation for PrototypeAST.\n");
 
 	Type* returnType = Type::getInt64Ty(*TheContext);
 
@@ -169,12 +167,14 @@ Function *PrototypeAST::codegen()
 		++argIterator;
 	}
 
+	TheModule->print(errs(), nullptr);
+
 	return function;
 }
 
 Function *FunctionAST::codegen()
 {
-	printf("Performing code generation for FunctionAST.\n");
+	printf("[CODEGEN] Performing code generation for FunctionAST.\n");
 
 	CodegenVisitor visitor;
 
@@ -205,12 +205,12 @@ Function *FunctionAST::codegen()
 		NamedValues[std::string(Arg.getName())] = &Arg;
 		ctr++;
 	}
-	printf("Added %d NamedValues.\n", ctr);
+	printf("[CODEGEN] Added %d NamedValues.\n", ctr);
 
 	// Generate the code for the body expression
 	if (Value* RetVal = Body->accept(&visitor)) {
 		// Finish off the function.
-		printf("Finishing off function!\n");
+		printf("[CODEGEN] Finishing off function!\n");
 		if (Builder != nullptr)
 		{
 			Builder->CreateRet(RetVal);
@@ -221,18 +221,19 @@ Function *FunctionAST::codegen()
 			}
 			else
 			{
-				printf("TheFunction is null!\n");
+				printf("[CODEGEN-ERR] TheFunction is null!\n");
 			}
 		}
 		else
 		{
-			printf("BuilderPtr is null!\n");
+			printf("[CODEGEN-ERR] BuilderPtr is null!\n");
 		}
 
 
 		return TheFunction;
 	}
 
+	TheModule->print(errs(), nullptr);
 	// TODO: Better error handling
 	TheFunction->eraseFromParent();
 
