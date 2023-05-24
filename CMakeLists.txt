@@ -13,16 +13,17 @@ project ("CussingLangImpl")
 
 
 set(SOURCES
-		lexer.cpp
-		lexer.h
-		parser.cpp
-		parser.h
-		util.h
-		CussingLangImpl.cpp
-		CussingLangImpl.h
-		codegen.h
-		codegen.cpp
-	)
+		"src/lang/lexer.cpp"
+		"src/lang/lexer.h"
+		"src/lang/parser.cpp"
+		"src/lang/parser.h"
+		"src/utils/util.h"
+		"src/CussingLangImpl.cpp"
+		"src/CussingLangImpl.h"
+		"src/llvmstuff/codegen.h"
+		"src/llvmstuff/codegen.cpp"
+		"src/jit/CussinJIT.h"
+)
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
