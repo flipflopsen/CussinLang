@@ -57,11 +57,13 @@ enum TokenType
 
 	//Keywords
 	TokenType_IF,
+	TokenType_THEN,
 	TokenType_ELIF,
 	TokenType_ELSE,
 	TokenType_DO,
 	TokenType_WHILE,
 	TokenType_FOR,
+	TokenType_FIN,
 	TokenType_FORE,
 	TokenType_FOREB,
 	TokenType_TRY,
@@ -69,6 +71,11 @@ enum TokenType
 	TokenType_GRASP,
 	TokenType_FINALLY,
 	TokenType_GOTO,
+
+	//User defined binary operators
+	TokenType_BINARY,
+	TokenType_UNARY,
+	TokenType_EXCL,
 
 	//Other Keywords
 	TokenType_NEW,

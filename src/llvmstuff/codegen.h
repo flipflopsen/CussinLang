@@ -4,7 +4,7 @@
 #include "../lang/ast.h"
 
 
-void InitializeModule();
+void InitializeModule(bool optimizations);
 void InitializeJIT();
 
 #endif

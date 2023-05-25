@@ -5,25 +5,20 @@
 #include <map>
 #include <stack>
 
+std::map<char, int> Parser::BinopPrecedence;
 std::unique_ptr<ExprAST> LogError(const char* Str);
 std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
 
 
-Parser::Parser(TokenArray tokens)
-{
-	Tokens = tokens;
-	CurTok = 0;
-	Position = 0;
-	Count = tokens.count;
-
-	BinopPrecedence['<'] = 10;
-	BinopPrecedence['+'] = 20;
-	BinopPrecedence['-'] = 20;
-	BinopPrecedence['*'] = 40;
-}
-
 void Parser::Parse(bool jit)
 {
+	if (BinopPrecedence.empty())
+	{
+		BinopPrecedence['<'] = 10;
+		BinopPrecedence['+'] = 20;
+		BinopPrecedence['-'] = 20;
+		BinopPrecedence['*'] = 40;
+	}
 	if (jit)
 	{
 		while (Position < Count) {
@@ -84,7 +79,7 @@ std::unique_ptr<ExprAST> Parser::ParseExpression() {
 
 std::unique_ptr<ExprAST> Parser::ParsePrimary()
 {
-	if (CurTok == TokenType_IDENTIFIER && Tokens.tokens[Position].type == TokenType_LPAREN)
+	if (CurTok == TokenType_IDENTIFIER && PeekNextToken().type == TokenType_LPAREN)
 		return ParseCallExpr();
 	
 	switch (CurTok) {
@@ -104,6 +99,12 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	case TokenType_LPAREN:
 		printf("[PARSER] Parsing Paren Expression\n");
 		return ParseParenExpr();
+	case TokenType_IF:
+		printf("[PARSER] Parsing IF Expression\n");
+		return ParseIfExpr();
+	case TokenType_FOR:
+		printf("[PARSER] Parsing FOR Expression\n");
+		return ParseForExpr();
 	case TokenType_EOF:
 		printf("[PARSER] Parsing of File is done!\n");
 		return nullptr;
@@ -120,37 +121,37 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 
 std::unique_ptr<ExprAST> Parser::ParseNumberExpr()
 {
-	auto token = Tokens.tokens[Position - 1].contents;
+	auto const token = PeekCurrentToken().contents;
 	fprintf(stderr, "[PARSER-NR] Parsing number expression for token: %s\n", token);
-	auto Result = std::make_unique<NumberExprAST>(strtoint(token));
-	return std::move(Result);
+	auto result = std::make_unique<NumberExprAST>(strtoint(token));
+	return std::move(result);
 }
 
 std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 {
-	std::string IdName = Tokens.tokens[Position - 1].contents;
+	std::string id_name = PeekCurrentToken().contents;
 
-	auto lookahead = Tokens.tokens[Position];
+	auto const lookahead = PeekNextToken();
 
-	if (lookahead.type == TokenType_COMMA || lookahead.type == TokenType_RPAREN)
+	if (lookahead.type != TokenType_LPAREN)
 	{
-		return std::make_unique<VariableExprAST>(IdName);
+		return std::make_unique<VariableExprAST>(id_name);
 	}
 
 	// This is vor single vars
 	if ((CurTok != TokenType_SEMICOLON && 
 		(IsOperator(lookahead.type) || lookahead.type == TokenType_SEMICOLON) &&
 		lookahead.type != TokenType_LPAREN) || lookahead.type == TokenType_RPAREN)
-		return std::make_unique<VariableExprAST>(IdName);
+		return std::make_unique<VariableExprAST>(id_name);
 	
 	// If we're here, it's a function call
-	fprintf(stderr, "[IMPORTANT] Calling ParseCallExpr from ParseIdentExpr!!");
+	fprintf(stderr, "[IMPORTANT] Calling ParseCallExpr from ParseIdentExpr!!\n");
 	return ParseCallArgsExpr();
 }
 
 std::unique_ptr<ExprAST> Parser::ParseCallExpr()
 {
-	std::string IdName = Tokens.tokens[Position - 1].contents;
+	std::string IdName = PeekCurrentToken().contents;
 
 	getNextToken();
 
@@ -195,14 +196,14 @@ std::unique_ptr<ExprAST> Parser::ParseCallExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseCallArgsExpr()
 {
-	std::string IdName = Tokens.tokens[Position - 1].contents;
+	std::string id_name = PeekCurrentToken().contents;
 
-	auto lookahead = Tokens.tokens[Position];
+	auto const lookahead = PeekNextToken();
 
 	if (lookahead.type == TokenType_COMMA || lookahead.type == TokenType_RPAREN)
 	{
 		if (CurTok == TokenType_IDENTIFIER)
-			return std::make_unique<VariableExprAST>(IdName);
+			return std::make_unique<VariableExprAST>(id_name);
 		return ParseNumberExpr();
 	}
 
@@ -245,14 +246,14 @@ std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<Exp
 		if (TokPrec < ExprPrec)
 			return LHS;
 
-		int BinOp = static_cast<int>(*Tokens.tokens[Position - 1].contents);
+		int BinOp = static_cast<int>(*PeekCurrentToken().contents);
 		getNextToken(); 
 
 		auto RHS = ParsePrimary();
 		if (!RHS)
 			return nullptr;
 
-		if (IsOperator(Tokens.tokens[Position].type))
+		if (IsOperator(PeekNextToken().type))
 		{
 
 			getNextToken();
@@ -278,17 +279,47 @@ std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<Exp
 }
 
 
-std::unique_ptr<PrototypeAST> Parser::ParsePrototype()
+std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 {
 	printf("[PARSER] Parsing prototype\n");
-	if (CurTok != TokenType_IDENTIFIER)
-		return LogErrorP("Expected function name in prototype");
 
-	std::string FnName = Tokens.tokens[Position - 1].contents;
+	std::string FnName;
+	unsigned Kind = 0; // 0 = identifier, 1 = unary, 2 = binary
+	unsigned BinaryPrecedence = 30;
+
+	switch (CurTok) {
+	default:
+		return LogErrorP("Expected function name in prototype");
+	case TokenType_IDENTIFIER:
+		FnName = PeekCurrentToken().contents;
+		Kind = 0;
+		getNextToken();
+		break;
+	case TokenType_BINARY:
+		getNextToken();
+		if (!isascii(CurTok))
+			return LogErrorP("Expected binary operator");
+		FnName = "binary";
+		FnName += (char)CurTok;
+		Kind = 2;
+		getNextToken();
+
+		// Read the precedence if present.
+		if (CurTok == TokenType_DIGIT) {
+			auto NumVal = strtoint(PeekCurrentToken().contents);
+			if (NumVal < 1 || NumVal > 100)
+				return LogErrorP("Invalid precedence: must be 1..100");
+			BinaryPrecedence = (unsigned)NumVal;
+			getNextToken();
+		}
+		break;
+	}
+
+
 	printf("[PARSER] FnName for prototype: %s\n", FnName.c_str());
 	std::string ReturnType;
 
-	getNextToken();
+	//getNextToken();
 
 	if (CurTok != TokenType_LPAREN)
 		return LogErrorP("Expected '(' in prototype");
@@ -308,24 +339,31 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype()
 	// success.
 	getNextToken(); // eat ')'.
 
-	if (CurTok != TokenType_RETSTMT)
+	if (!is_extern && Kind == 0)
+	{
+		if (CurTok != TokenType_RETSTMT)
 		return LogErrorP("Expected '->' in prototype");
 
-	Token tok = getNextToken(); // eat '->'
+		Token tok = getNextToken(); // eat '->'
 
-	if (CurTok != TokenType_I32 && CurTok != TokenType_I64)
-		return LogErrorP("Expected valid return type (i32/i64) in prototype");
-	ReturnType = tok.contents;
+		if (CurTok != TokenType_I32 && CurTok != TokenType_I64)
+			return LogErrorP("Expected valid return type (i32/i64) in prototype");
+		ReturnType = tok.contents;
 
-	getNextToken(); // eat up the return type;
+		getNextToken(); // eat up the return type;
+	}
 
-	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames));
+	// Verify right number of names for operator.
+	if (Kind && ArgNames.size() != Kind)
+		return LogErrorP("Invalid number of operands for operator");
+
+	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames), Kind != 0, BinaryPrecedence);
 }
 
 std::unique_ptr<FunctionAST> Parser::ParseFnDef()
 {
 	getNextToken(); // eat next token
-	auto Proto = ParsePrototype();
+	auto Proto = ParsePrototype(false);
 	if (!Proto)
 		return nullptr;
 
@@ -354,7 +392,84 @@ std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 std::unique_ptr<PrototypeAST> Parser::ParseExtern()
 {
 	getNextToken(); // eat extern.
-	return ParsePrototype();
+	return ParsePrototype(true);
+}
+
+std::unique_ptr<ExprAST> Parser::ParseIfExpr()
+{
+	getNextToken();
+
+	auto Condition = ParseExpression();
+	if (!Condition)
+		return nullptr;
+
+	if (CurTok != TokenType_THEN)
+		return LogError("Expected 'then' after 'if'");
+	getNextToken();
+
+	auto Then = ParseExpression();
+
+	if (CurTok != TokenType_ELSE)
+		return LogError("Expected 'else'");
+
+	getNextToken();
+
+	auto Else = ParseExpression();
+	if (!Else)
+		return nullptr;
+
+	return std::make_unique<IfExprAST>(std::move(Condition), std::move(Then),
+		std::move(Else));
+}
+
+/// forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in' expression
+std::unique_ptr<ExprAST> Parser::ParseForExpr()
+{
+	getNextToken();  // eat the for.
+
+	if (CurTok != TokenType_IDENTIFIER)
+		return LogError("expected identifier after for");
+
+	std::string IdName = PeekCurrentToken().contents;
+	getNextToken();  // eat identifier.
+
+	if (CurTok != TokenType_EQL)
+		return LogError("expected '=' after for");
+	getNextToken();  // eat '='.
+
+
+	auto Start = ParseExpression();
+	if (!Start)
+		return nullptr;
+	if (CurTok != TokenType_COMMA)
+		return LogError("expected ',' after for start value");
+	getNextToken();
+
+	auto End = ParseExpression();
+	if (!End)
+		return nullptr;
+
+	// The step value is optional.
+	std::unique_ptr<ExprAST> Step;
+	getNextToken();
+	if (CurTok == TokenType_COMMA) {
+		getNextToken();
+		Step = ParseExpression();
+		if (!Step)
+			return nullptr;
+	}
+
+	if (CurTok != TokenType_FIN)
+		return LogError("expected 'fin' after for");
+	getNextToken();  // eat 'fin'.
+
+	auto Body = ParseExpression();
+	if (!Body)
+		return nullptr;
+
+	return std::make_unique<ForExprAST>(IdName, std::move(Start),
+		std::move(End), std::move(Step),
+		std::move(Body));
 }
 
 
@@ -481,6 +596,16 @@ void Parser::outputVals()
 		fprintf(stderr, "[PARSER] Token %d val: %s, type: %d \n", i, tok.contents, tok.type);
 		i++;
 	}
+}
+
+Token Parser::PeekNextToken()
+{
+	return Tokens.tokens[Position];
+}
+
+Token Parser::PeekCurrentToken()
+{
+	return Tokens.tokens[Position - 1];
 }
 
 

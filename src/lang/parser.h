@@ -32,6 +32,7 @@ struct TokenDictionaryItem
 	char* datatype;
 };
 
+
 class Parser
 {
 public:
@@ -39,9 +40,15 @@ public:
 	int CurTok;
 	int Count;
 	int Position;
-	std::map<char, int> BinopPrecedence;
+	static std::map<char, int> BinopPrecedence;
 
-	Parser(TokenArray tokens);
+	Parser(TokenArray tokens)
+	{
+		Tokens = tokens;
+		CurTok = 0;
+		Position = 0;
+		Count = tokens.count;
+	}
 
 	void Parse(bool jit);
 
@@ -60,9 +67,11 @@ private:
 	std::unique_ptr<ExprAST> ParseCallExpr();
 	std::unique_ptr<ExprAST> ParseCallArgsExpr();
 	std::unique_ptr<ExprAST> ParseBraceExpr();
+	std::unique_ptr<ExprAST> ParseIfExpr();
+	std::unique_ptr<ExprAST> ParseForExpr();
 	std::unique_ptr<PrototypeAST> ParseExtern();
 	std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
-	std::unique_ptr<PrototypeAST> ParsePrototype();
+	std::unique_ptr<PrototypeAST> ParsePrototype(bool is_extern);
 	std::unique_ptr<FunctionAST> ParseFnDef();
 	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
 
@@ -76,10 +85,10 @@ private:
 	void HandleDefinitionJIT();
 	void HandleTopLevelExpressionJIT();
 
-
-
 	// Access to token buf
 	Token getNextToken();
+	Token PeekNextToken();
+	Token PeekCurrentToken();
 	bool IsOperator(int type);
 };
 

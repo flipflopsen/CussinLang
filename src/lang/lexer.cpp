@@ -223,7 +223,7 @@ Token GetToken(Tokenizer& tokenizer)
 	} break;
 	case '!':
 	{
-		token.type = TokenType_NOT;
+		token.type = TokenType_EXCL;
 		char* str = new char[4];
 		strcopy(str, "!");
 		token.contents = str;
@@ -300,6 +300,36 @@ Token GetToken(Tokenizer& tokenizer)
 			token.contents[token.length] = '\0';
 
 			// Once we have an identifier, we can check if it matches a keyword
+			if (strcompare(token.contents, "binary"))
+			{
+				token.type = TokenType_BINARY;
+				break;
+			}
+			if (strcompare(token.contents, "unary"))
+			{
+				token.type = TokenType_UNARY;
+				break;
+			}
+			if (strcompare(token.contents, "if"))
+			{
+				token.type = TokenType_IF;
+				break;
+			}
+			if (strcompare(token.contents, "then"))
+			{
+				token.type = TokenType_THEN;
+				break;
+			}
+			if (strcompare(token.contents, "elif"))
+			{
+				token.type = TokenType_ELIF;
+				break;
+			}
+			if (strcompare(token.contents, "else"))
+			{
+				token.type = TokenType_ELSE;
+				break;
+			}
 			if (strcompare(token.contents, "extern"))
 			{
 				token.type = TokenType_EXTERN;
@@ -330,6 +360,11 @@ Token GetToken(Tokenizer& tokenizer)
 				token.type = TokenType_AND;
 				break;
 			}
+			if (strcompare(token.contents, "not"))
+			{
+				token.type = TokenType_NOT;
+				break;
+			}
 			if (strcompare(token.contents, "or"))
 			{
 				token.type = TokenType_OR;
@@ -353,6 +388,11 @@ Token GetToken(Tokenizer& tokenizer)
 			if (strcompare(token.contents, "for"))
 			{
 				token.type = TokenType_FOR;
+				break;
+			}
+			if (strcompare(token.contents, "fin"))
+			{
+				token.type = TokenType_FIN;
 				break;
 			}
 			if (strcompare(token.contents, "fore"))
@@ -582,14 +622,16 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_COMMA:
 	case TokenType_BECOMES:
 	case TokenType_COLON:
-		return "Seperator";
+		return "Separator";
 	case TokenType_FN:
 	case TokenType_IF:
+	case TokenType_THEN:
 	case TokenType_ELIF:
 	case TokenType_ELSE:
 	case TokenType_DO:
 	case TokenType_WHILE:
 	case TokenType_FOR:
+	case TokenType_FIN:
 	case TokenType_FORE:
 	case TokenType_FOREB:
 	case TokenType_TRY:
@@ -604,6 +646,9 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_NULL:
 	case TokenType_EXTERN:
 		return "Keyword";
+	case TokenType_BINARY:
+	case TokenType_UNARY:
+		return "Keyword for UserDefinedOperators";
 	case TokenType_RETSTMT:
 		return "Return specification strongly";
 	case TokenType_EOF:
