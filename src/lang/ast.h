@@ -31,6 +31,8 @@ class PrototypeAST;
 class FunctionAST;
 class IfExprAST;
 class ForExprAST;
+class UnaryExprAST;
+class LetExprAST;
 //class DoExprAST;
 //class TryExprAST;
 //class StructExprAST;
@@ -49,6 +51,8 @@ public:
 	virtual Function *visit(FunctionAST* ast) = 0;
 	virtual Value *visit(IfExprAST* ast) = 0;
 	virtual Value* visit(ForExprAST* ast) = 0;
+	virtual Value* visit(UnaryExprAST* ast) = 0;
+	virtual Value* visit(LetExprAST* ast) = 0;
 	//virtual void visit(DoExprAST* ast) = 0;
 	//virtual void visit(StructExprAST* ast) = 0;
 	//virtual void visit(EnumExprAST* ast) = 0;
@@ -65,10 +69,13 @@ public:
 	Function *visit(FunctionAST* ast) override;
 	Value* visit(IfExprAST* ast) override;
 	Value* visit(ForExprAST* ast) override;
+	Value* visit(UnaryExprAST* ast) override;
+	Value* visit(LetExprAST* ast) override;
 };
 
 
-class ExprAST {
+class ExprAST
+{
 public:
 	virtual ~ExprAST() = default;
 	virtual Value *accept(Visitor* visitor) = 0;
@@ -90,7 +97,8 @@ public:
 
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
-class VariableExprAST : public ExprAST {
+class VariableExprAST : public ExprAST
+{
 	std::string Name;
 public:
 	VariableExprAST(const std::string& Name) : Name(Name) {}
@@ -99,12 +107,14 @@ public:
 		return visitor->visit(this);
 	}
 
+	const std::string& getName() const{ return Name; }
 	Value *codegen();
 };
 
 
 /// BinaryExprAST - Expression class for a binary operator.
-class BinaryExprAST : public ExprAST {
+class BinaryExprAST : public ExprAST
+{
 	char Op;
 	std::unique_ptr<ExprAST> LHS, RHS;
 
@@ -122,7 +132,8 @@ public:
 
 
 /// CallExprAST - Expression class for function calls.
-class CallExprAST : public ExprAST {
+class CallExprAST : public ExprAST
+{
 	std::string Callee;
 	std::vector<std::unique_ptr<ExprAST>> Args;
 
@@ -140,7 +151,8 @@ public:
 
 /// PrototypeAST - represents a Prototype for a function with name, argument names etc.
 
-class PrototypeAST {
+class PrototypeAST
+{
 	std::string Name;
 	std::vector<std::string> Args;
 	bool IsOperator;
@@ -171,7 +183,8 @@ public:
 };
 
 
-class FunctionAST {
+class FunctionAST
+{
 	std::unique_ptr<PrototypeAST> Proto;
 	std::unique_ptr<ExprAST> Body;
 
@@ -188,7 +201,8 @@ public:
 };
 
 
-class IfExprAST : public ExprAST {
+class IfExprAST : public ExprAST
+{
 	std::unique_ptr<ExprAST> Cond, Then, Else;
 
 public:
@@ -204,7 +218,8 @@ public:
 	Value* codegen();
 };
 
-class ForExprAST : public ExprAST {
+class ForExprAST : public ExprAST
+{
 	std::string VarName;
 	std::unique_ptr<ExprAST> Start, End, Step, Body;
 
@@ -215,6 +230,39 @@ public:
 			: VarName(VarName), Start(std::move(Start)),
 				End(std::move(End)), Step(std::move(Step)),
 				Body(std::move(Body)) {}
+
+	Value* accept(Visitor* visitor) override {
+		return visitor->visit(this);
+	}
+
+	Value* codegen();
+};
+
+class UnaryExprAST : public ExprAST
+{
+	char Opcode;
+	std::unique_ptr<ExprAST> Operand;
+
+public:
+	UnaryExprAST(char Opcode, std::unique_ptr<ExprAST> Operand)
+		: Opcode(Opcode), Operand(std::move(Operand)) {}
+
+	Value* accept(Visitor* visitor) override {
+		return visitor->visit(this);
+	}
+
+	Value* codegen();
+};
+
+class LetExprAST : public ExprAST
+{
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+	std::unique_ptr<ExprAST> Body;
+
+public:
+	LetExprAST(std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
+		std::unique_ptr<ExprAST> Body)
+		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
 
 	Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);

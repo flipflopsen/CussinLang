@@ -14,6 +14,7 @@ void Parser::Parse(bool jit)
 {
 	if (BinopPrecedence.empty())
 	{
+		BinopPrecedence['='] = 2;
 		BinopPrecedence['<'] = 10;
 		BinopPrecedence['+'] = 20;
 		BinopPrecedence['-'] = 20;
@@ -68,7 +69,7 @@ void Parser::Parse(bool jit)
 }
 
 std::unique_ptr<ExprAST> Parser::ParseExpression() {
-	auto LHS = ParsePrimary();
+	auto LHS = ParseUnary();
 	if (!LHS)
 		return nullptr;
 
@@ -105,6 +106,9 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	case TokenType_FOR:
 		printf("[PARSER] Parsing FOR Expression\n");
 		return ParseForExpr();
+	case TokenType_LET:
+		printf("[PARSER] Parsing LET Expression\n");
+		return ParseLetExpr();
 	case TokenType_EOF:
 		printf("[PARSER] Parsing of File is done!\n");
 		return nullptr;
@@ -249,7 +253,7 @@ std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<Exp
 		int BinOp = static_cast<int>(*PeekCurrentToken().contents);
 		getNextToken(); 
 
-		auto RHS = ParsePrimary();
+		auto RHS = ParseUnary();
 		if (!RHS)
 			return nullptr;
 
@@ -293,6 +297,15 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	case TokenType_IDENTIFIER:
 		FnName = PeekCurrentToken().contents;
 		Kind = 0;
+		getNextToken();
+		break;
+	case TokenType_UNARY:
+		getNextToken();
+		if (!isascii(CurTok))
+			return LogErrorP("Expected unary operator");
+		FnName = "unary";
+		FnName += (char)CurTok;
+		Kind = 1;
 		getNextToken();
 		break;
 	case TokenType_BINARY:
@@ -472,7 +485,66 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 		std::move(Body));
 }
 
+std::unique_ptr<ExprAST> Parser::ParseUnary()
+{
+	// If the current token is not an operator, it must be a primary expr.
+	if (!IsOperator(CurTok) || CurTok == '(' || CurTok == ',')
+		return ParsePrimary();
 
+	// If this is a unary operator, read it.
+	int Opc = CurTok;
+	getNextToken();
+	if (auto Operand = ParseUnary())
+		return std::make_unique<UnaryExprAST>(Opc, std::move(Operand));
+	return nullptr;
+}
+
+std::unique_ptr<ExprAST> Parser::ParseLetExpr()
+{
+	getNextToken(); // eat let
+
+	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+
+	if (CurTok != TokenType_IDENTIFIER)
+		return LogError("Expected identifier after 'let'");
+
+	while (true)
+	{
+		std::string Name = PeekCurrentToken().contents;
+		getNextToken(); // eat up identifier
+
+		std::unique_ptr<ExprAST> Init;
+
+		if (CurTok == TokenType_EQL)
+		{
+			getNextToken(); // eat uo '='
+
+			Init = ParseExpression();
+			if (!Init)
+				return nullptr;
+		}
+
+		VarNames.push_back(std::make_pair(Name, std::move(Init)));
+
+		if (CurTok != TokenType_COMMA)
+			break;
+		getNextToken(); // eat the ','
+
+		if (CurTok != TokenType_IDENTIFIER)
+			return LogError("expected identifier list after 'let'");
+	}
+
+	if (CurTok != TokenType_IN)
+		return LogError("expected 'in' keyword after 'let'");
+	getNextToken(); // eat 'in'
+
+	auto Body = ParseExpression();
+
+	if (!Body)
+		return nullptr;
+
+	return std::make_unique<LetExprAST>(std::move(VarNames), std::move(Body));
+}
 // Handlers
 
 void Parser::HandleDefinition()
@@ -636,6 +708,7 @@ bool Parser::IsOperator(int type)
 	case TokenType_LEQ:
 	case TokenType_GEQ:
 	case TokenType_MOD:
+	case TokenType_EXCL:
 		return true;
 	default:
 		return false;

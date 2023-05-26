@@ -18,7 +18,14 @@ constexpr bool jit = false;
 
 const std::vector<std::string> inputs =
 {
-	"fn binary> 10 (LHS RHS) { RHS < LHS; }"
+	"fn binary : 1 (x y) { y; }",
+	"fn test(x) -> i64 { let y = x in test(y);"
+	//"extern printd(x);",
+	//"fn test(x) -> i64 { printd(x) : x = 4 : printd(x);"
+	//"fn fib(x) -> i64 {if (x < 3) then 1 else fib(x-1) + fib(x-2);"
+	//"fn unary!(v) { if v then 0 else 1; }",
+	//"fn test(a) -> i64 { !a; }"
+	//"fn binary> 10 (LHS RHS) { RHS < LHS; }"
 	//"extern putchard(char);",
 	//"fn printstar(n) -> i64 { for i = 1, i < n, 1 fin putchard(42);",
 	//"printstar(100)"
