@@ -6,5 +6,6 @@
 
 void InitializeModule(bool optimizations);
 void InitializeJIT();
+int ObjectCodeGen();
 
 #endif

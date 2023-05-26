@@ -11,14 +11,17 @@
 #include <cstdio>
 #include <vector>
 #include <llvm/Support/TargetSelect.h>
+#include "llvm/InitializePasses.h"
 
 using namespace std;
+using namespace llvm;
+using namespace llvm::sys;
 
 constexpr bool jit = false;
 
 const std::vector<std::string> inputs =
 {
-	"fn binary : 1 (x y) { y; }",
+	//"fn binary : 1 (x y) { y; }",
 	"fn test(x) -> i64 { let y = x in test(y);"
 	//"extern printd(x);",
 	//"fn test(x) -> i64 { printd(x) : x = 4 : printd(x);"
@@ -51,6 +54,12 @@ int main()
 
 	InitializeModule(false);
 
+	//InitializeAllTargetInfos();
+	//InitializeAllTargets();
+	//InitializeAllTargetMCs();
+	//InitializeAllAsmParsers();
+	//InitializeAllAsmPrinters();
+
 	int ctr = 0;
 
 	while (true)
@@ -74,6 +83,8 @@ int main()
 
 		auto parser = Parser(token_array);
 		parser.Parse(jit);
+
+		//ObjectCodeGen();
 
 		ctr++;
 		//DeleteTokens(token_array);
