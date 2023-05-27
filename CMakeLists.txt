@@ -4,13 +4,48 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+#if (POLICY CMP0141)
+#  cmake_policy(SET CMP0141 NEW)
+#  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+#endif()
+
 
 project ("CussingLangImpl")
 
+#set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
+
+#if (CMAKE_VERSION VERSION_GREATER 3.12)
+#  set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
+#  set(BUILD_ARCH "-m64")
+#  set(TARGET_64 ON)
+#endif()
+
+
+set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
+
+# Set compiler options
+#set(CMAKE_CXX_COMPILER "clang++")
+#set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_FLAGS "-stdlib=libc++ -g -O3 ")
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Set LLVM flags
+#execute_process(
+#  COMMAND llvm-config --cxxflags --ldflags --system-libs --libs all
+#  OUTPUT_VARIABLE LLVM_CONFIG_OUTPUT
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
+#string(REGEX REPLACE "(\n|\r)+$" "" LLVM_CONFIG_OUTPUT "${LLVM_CONFIG_OUTPUT}")
+#separate_arguments(LLVM_CONFIG_FLAGS NATIVE_COMMAND ${LLVM_CONFIG_OUTPUT})
+
+
+# Find LLVM package
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
 
 set(SOURCES
 		"src/lang/lexer.cpp"
@@ -28,31 +63,24 @@ set(SOURCES
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
-  set(BUILD_ARCH "-m64")
-  set(TARGET_64 ON)
-endif()
-
-set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
-# import LLVM
-find_package(LLVM REQUIRED CONFIG)
-include_directories(${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
-
-llvm_map_components_to_libnames(llvm_libs#
-	Analysis
-	Core
-	ExecutionEngine
-	InstCombine
-	Object
-	#PrcJIT
-	RuntimeDyld
-	ScalarOpts
-	Support
-	native
+# Link LLVM libraries and flags
+llvm_map_components_to_libnames(LLVM_LIBS
+  all
+  Analysis
+  Core
+  ExecutionEngine
+  InstCombine
+  Object
+  RuntimeDyld
+  ScalarOpts
+  Support
+  irreader
+  native
+  mcjit
 )
 
-target_link_libraries(CussingLangImpl ${llvm_libs})
+foreach(target ${LLVM_TARGETS_TO_BUILD})
+  list(APPEND targets "LLVM${target}CodeGen")
+endforeach()
 
-# TODO: Add tests and install targets if needed.
+target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets})

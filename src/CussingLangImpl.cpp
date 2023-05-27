@@ -3,7 +3,6 @@
 
 #include "CussingLangImpl.h"
 #include "utils/util.h"
-#include "jit/CussinJIT.h"
 #include "lang/lexer.h"
 #include "lang/parser.h"
 #include "llvmstuff/codegen.h"
@@ -14,15 +13,14 @@
 #include "llvm/InitializePasses.h"
 
 using namespace std;
-using namespace llvm;
-using namespace llvm::sys;
 
 constexpr bool jit = false;
 
 const std::vector<std::string> inputs =
 {
+	"fn doubleit(x, y) -> i64 { (x + y) * 2 ; }"
 	//"fn binary : 1 (x y) { y; }",
-	"fn test(x) -> i64 { let y = x in test(y);"
+	//"fn test(x) -> i64 { let y = x in test(y);"
 	//"extern printd(x);",
 	//"fn test(x) -> i64 { printd(x) : x = 4 : printd(x);"
 	//"fn fib(x) -> i64 {if (x < 3) then 1 else fib(x-1) + fib(x-2);"
@@ -46,19 +44,19 @@ int main()
 	printf("Starting CussingLangImpl \n");
 
 
-	//InitializeNativeTarget();
-	//InitializeNativeTargetAsmPrinter();
-	//InitializeNativeTargetAsmParser();
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
+
+	InitializeModule(true);
 
 	//InitializeJIT();
 
-	InitializeModule(false);
+	llvm::InitializeAllTargetInfos();
+	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
+	llvm::InitializeAllAsmPrinters();
 
-	//InitializeAllTargetInfos();
-	//InitializeAllTargets();
-	//InitializeAllTargetMCs();
-	//InitializeAllAsmParsers();
-	//InitializeAllAsmPrinters();
 
 	int ctr = 0;
 
@@ -84,7 +82,7 @@ int main()
 		auto parser = Parser(token_array);
 		parser.Parse(jit);
 
-		//ObjectCodeGen();
+		ObjectCodeGen();
 
 		ctr++;
 		//DeleteTokens(token_array);
