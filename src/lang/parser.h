@@ -1,37 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "../utils/Datatypes.h"
 #include "lexer.h"
-#include "ast.h"
 #include <map>
 
-enum DataType
-{
-	DT_BOOL,
-	DT_CHAR,
-	DT_SHORT_INT,
-	DT_UNSIGNED_SHORT_INT,
-	DT_INT,
-	DT_UNSIGNED_INT,
-	DT_DOUBLE,
-	DT_FLOAT,
-
-	/* Pointers */
-	DT_POINTER_TO_INT,
-	DT_POINTER_TO_DOUBLE,
-	DT_POINTER_TO_CHAR,
-	DT_POINTER_TO_STRUCT,
-	DT_POINTER_TO_FLOAT,
-	DT_OTHER
-};
-
-struct TokenDictionaryItem
-{
-	char const * key;
-	void* value;
-	char* datatype;
-};
-
+#include "ast.h"
 
 class Parser
 {
@@ -91,7 +65,10 @@ private:
 	Token getNextToken();
 	Token PeekNextToken();
 	Token PeekCurrentToken();
+	Token PeekNextNextToken();
 	bool IsOperator(int type);
+
+	DataType EvaluateDataTypeOfToken(int tokenPos);
 };
 
 #endif

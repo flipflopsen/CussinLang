@@ -6,6 +6,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "../utils/Datatypes.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -38,12 +41,13 @@ public:
 	virtual Value *visit(VariableExprAST* ast) = 0;
 	virtual Value *visit(BinaryExprAST* ast) = 0;
 	virtual Value *visit(CallExprAST* ast) = 0;
-	virtual Function *visit(PrototypeAST* ast) = 0;
-	virtual Function *visit(FunctionAST* ast) = 0;
 	virtual Value *visit(IfExprAST* ast) = 0;
 	virtual Value* visit(ForExprAST* ast) = 0;
 	virtual Value* visit(UnaryExprAST* ast) = 0;
 	virtual Value* visit(LetExprAST* ast) = 0;
+
+	virtual Function* visit(PrototypeAST* ast) = 0;
+	virtual Function* visit(FunctionAST* ast) = 0;
 	//virtual void visit(DoExprAST* ast) = 0;
 	//virtual void visit(StructExprAST* ast) = 0;
 	//virtual void visit(EnumExprAST* ast) = 0;
@@ -56,12 +60,13 @@ public:
 	Value *visit(VariableExprAST* ast) override;
 	Value *visit(BinaryExprAST* ast) override;
 	Value *visit(CallExprAST* ast) override;
-	Function *visit(PrototypeAST* ast) override;
-	Function *visit(FunctionAST* ast) override;
 	Value* visit(IfExprAST* ast) override;
 	Value* visit(ForExprAST* ast) override;
 	Value* visit(UnaryExprAST* ast) override;
 	Value* visit(LetExprAST* ast) override;
+
+	Function *visit(PrototypeAST* ast) override;
+	Function *visit(FunctionAST* ast) override;
 };
 
 
@@ -91,8 +96,9 @@ public:
 class VariableExprAST : public ExprAST
 {
 	std::string Name;
+	DataType dt;
 public:
-	VariableExprAST(const std::string& Name) : Name(Name) {}
+	VariableExprAST(const std::string& Name, DataType dt) : Name(Name), dt(dt) {}
 
 	Value *accept(Visitor* visitor) override {
 		return visitor->visit(this);
@@ -145,14 +151,15 @@ public:
 class PrototypeAST
 {
 	std::string Name;
-	std::vector<std::string> Args;
+	std::vector< std::pair<std::string, DataType>> Args;
 	bool IsOperator;
 	unsigned Precedence; // Precedence if BinOp
+	DataType returnType;
 
 public:
-	PrototypeAST(const std::string& Name, std::vector<std::string> Args,
+	PrototypeAST(const std::string& Name, std::vector <std::pair<std::string, DataType>> Args, DataType returnType,
 		bool IsOperator = false, unsigned Prec = 0)
-		: Name(Name), Args(std::move(Args)),
+		: Name(Name), Args(std::move(Args)), returnType(returnType),
 			IsOperator(IsOperator),Precedence(Prec) {}
 
 	Function *accept(Visitor* visitor) {
@@ -213,12 +220,13 @@ class ForExprAST : public ExprAST
 {
 	std::string VarName;
 	std::unique_ptr<ExprAST> Start, End, Step, Body;
+	DataType LoopVarDataType;
 
 public:
-	ForExprAST(const std::string &VarName, std::unique_ptr<ExprAST> Start, 
+	ForExprAST(const std::string &VarName, DataType LoopVarDataType, std::unique_ptr<ExprAST> Start,
 		std::unique_ptr<ExprAST> End, std::unique_ptr<ExprAST> Step, 
 		std::unique_ptr<ExprAST> Body)
-			: VarName(VarName), Start(std::move(Start)),
+			: VarName(VarName), LoopVarDataType(LoopVarDataType), Start(std::move(Start)),
 				End(std::move(End)), Step(std::move(Step)),
 				Body(std::move(Body)) {}
 
@@ -249,11 +257,12 @@ class LetExprAST : public ExprAST
 {
 	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
 	std::unique_ptr<ExprAST> Body;
+	DataType dt;
 
 public:
 	LetExprAST(std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames,
-		std::unique_ptr<ExprAST> Body)
-		: VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+		std::unique_ptr<ExprAST> Body, DataType dt)
+		: VarNames(std::move(VarNames)), Body(std::move(Body)), dt(dt) {}
 
 	Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);

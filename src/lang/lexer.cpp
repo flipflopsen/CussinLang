@@ -337,12 +337,22 @@ Token GetToken(Tokenizer& tokenizer)
 			}
 			if (strcompare(token.contents, "i64"))
 			{
-				token.type = TokenType_I64;
+				token.type = TokenType_DT;
 				break;
 			}
 			if (strcompare(token.contents, "i32"))
 			{
-				token.type = TokenType_I32;
+				token.type = TokenType_DT;
+				break;
+			}
+			if (strcompare(token.contents, "i8"))
+			{
+				token.type = TokenType_DT;
+				break;
+			}
+			if (strcompare(token.contents, "double"))
+			{
+				token.type = TokenType_DT;
 				break;
 			}
 			if (strcompare(token.contents, "in"))
@@ -589,8 +599,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_UNSIGNED:
 		return "Modifier";
 	case TokenType_DIGIT:
-	case TokenType_I32:
-	case TokenType_I64:
+	case TokenType_DT:
 	case TokenType_FLOAT:
 	case TokenType_STRING:
 	case TokenType_BOOL:

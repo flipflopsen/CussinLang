@@ -17,8 +17,7 @@ enum TokenType
 
 	//Literals
 	TokenType_DIGIT,
-	TokenType_I64,
-	TokenType_I32,
+	TokenType_DT,
 	TokenType_FLOAT,
 	TokenType_STRING,
 	TokenType_BOOL,

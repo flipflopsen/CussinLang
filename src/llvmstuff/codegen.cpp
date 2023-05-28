@@ -22,15 +22,18 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/TargetParser/Host.h"
-#include "llvm/Transforms/Utils.h"
+#include "llvm/ExecutionEngine/MCJIT.h"
 //#include "../jit/CussinJIT.h"
+#include <codecvt>
+#include <iostream>
+
 #include "../lang/parser.h"
 #include <map>
 
 using namespace llvm;
 using namespace llvm::sys;
 
-AllocaInst* CreateEntryBlockAlloca(Function* TheFunction, const std::string& VarName);
+AllocaInst* CreateEntryBlockAlloca(Function* TheFunction, const std::string& VarName, Type* type);
 
 
 void LogError(const char* Str) {
@@ -44,13 +47,12 @@ Value* LogErrorV(const char* Str) {
 
 
 static std::unique_ptr<LLVMContext> TheContext;
-static std::unique_ptr<Module> TheModule;
+std::unique_ptr<Module> TheModule;
 static std::unique_ptr<IRBuilder<>> Builder;
 static std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-
-//static std::map<std::string, Value*> NamedValues;
 static std::map<std::string, AllocaInst*> NamedValues;
 static std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+static ExecutionEngine* engine;
 //static std::unique_ptr<orc::CussinJIT> TheJIT;
 static ExitOnError ExitOnErr;
 
@@ -214,7 +216,7 @@ Value *BinaryExprAST::codegen()
 		return Builder->CreateMul(L, R, "multmp");
 	case '<':
 		L = Builder->CreateICmpSLT(L, R, "cmptmp");
-		L = Builder->CreateSExt(L, IntegerType::get(*TheContext, 64), "booltmp");
+		L = Builder->CreateSExt(L, R->getType(), "booltmp");
 		// Convert bool 0/1 to double 0.0 or 1.0
 		//return Builder->CreateUIToFP(L, Type::getDoubleTy(*TheContext), "booltmp");
 		return L;
@@ -259,11 +261,13 @@ Function *PrototypeAST::codegen()
 	printf("[CODEGEN] Performing code generation for PrototypeAST.\n");
 
 	Type* returnType = Type::getInt64Ty(*TheContext);
+	returnType = GetLLVMTypeFromDataType(&this->returnType);
 
 	std::vector<Type*> paramTypes;
 	for (const auto& arg : Args) {
 		// Assuming all parameter types are i64 for this example
-		paramTypes.push_back(llvm::Type::getInt64Ty(*TheContext));
+		paramTypes.push_back(GetLLVMTypeFromDataType(const_cast<DataType*>(&arg.second)));
+		//paramTypes.push_back(llvm::Type::getInt64Ty(*TheContext));
 	}
 
 
@@ -276,7 +280,7 @@ Function *PrototypeAST::codegen()
 	// Set names for the function parameters
 	llvm::Function::arg_iterator argIterator = function->arg_begin();
 	for (const auto& arg : Args) {
-		argIterator->setName(arg);
+		argIterator->setName(arg.first);
 		++argIterator;
 	}
 
@@ -300,25 +304,6 @@ Function *FunctionAST::codegen()
 	if (P.isBinaryOp())
 		Parser::BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence();
 
-	/*
-	// Create a new basic block to start insertion into.
-	BasicBlock* BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-
-	CodegenVisitor visitor;
-
-	
-	// Create a new LLVM module
-	Function* TheFunction = TheModule->getFunction(Proto->getName());
-
-	if (!TheFunction)
-		TheFunction = Proto->accept(&visitor);
-
-	if (!TheFunction)
-		return nullptr;
-
-	if (!TheFunction->empty())
-		return static_cast<Function*>(LogErrorV("Function cannot be redefined."));
-		*/
 
 
 	// Create a new basic block in the function
@@ -333,7 +318,7 @@ Function *FunctionAST::codegen()
 	for (auto& Arg : TheFunction->args())
 	{
 		// Create an alloca for this variable.
-		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str());
+		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str(), Arg.getType());
 
 		// Store the initial value into the alloca.
 		Builder->CreateStore(&Arg, Alloca);
@@ -455,7 +440,7 @@ Value* ForExprAST::codegen()
 	Function* TheFunction = Builder->GetInsertBlock()->getParent();
 
 	// Create a new alloca for the var in entry block
-	AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+	AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName, GetLLVMTypeFromDataType(&this->LoopVarDataType));
 
 	// Emit start code without var in scope
 	Value* StartVal = Start->accept(&visitor);
@@ -585,10 +570,11 @@ Value* LetExprAST::codegen()
 		}
 		else 
 		{ // If not specified, use 0
-			InitVal = ConstantInt::get(*TheContext, APInt(64, 0));
+			//InitVal = ConstantInt::get(*TheContext, APInt(64, 0));
+			InitVal = GetValueFromDataType(&this->dt);
 		}
 
-		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName, GetLLVMTypeFromDataType(&this->dt));
 		Builder->CreateStore(InitVal, Alloca);
 
 		OldBindings.push_back(NamedValues[VarName]);
@@ -611,7 +597,7 @@ Value* LetExprAST::codegen()
 
 // CreateEntryBlockAlloca - Create an alloca instr in the entry block of the function
 // Used for mut. vars etc.
-AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, const std::string &VarName)
+AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, const std::string &VarName, Type* type)
 {
 	// Create an IRBuilder obj which points at the first instruction of the entry block
 	IRBuilder<> TmpBuilder(
@@ -619,12 +605,7 @@ AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, const std::string &Var
 		TheFunction->getEntryBlock().begin());
 
 	// Create an alloca with VarName
-	return TmpBuilder.CreateAlloca(Type::getInt64Ty(*TheContext), nullptr, VarName);
-}
-
-void InitializeJIT()
-{
-	//TheJIT = ExitOnErr(orc::CussinJIT::Create());
+	return TmpBuilder.CreateAlloca(type, nullptr, VarName);
 }
 
 void InitializeModule(bool optimizations)
@@ -663,14 +644,27 @@ void InitializeModule(bool optimizations)
 
 }
 
+void InitializeJIT()
+{
+	std::string error;
+	llvm::raw_string_ostream error_os(error);
+	if (llvm::verifyModule(*TheModule, &error_os)) {
+		std::cerr << "Module Error: " << error << '\n';
+		TheModule->dump();
+	}
+
+	llvm::EngineBuilder engineBuilder(std::move(TheModule));
+
+	engineBuilder
+		.setErrorStr(&error)
+		.setOptLevel(llvm::CodeGenOpt::Aggressive)
+		.setEngineKind(llvm::EngineKind::JIT);
+
+	engine = engineBuilder.create();
+}
+
 int ObjectCodeGen()
 {
-	//InitializeAllTargetInfos();
-	//InitializeAllTargets();
-	//InitializeAllTargetMCs();
-	//InitializeAllAsmParsers();
-	//InitializeAllAsmPrinters();
-
 	auto TargetTriple = sys::getDefaultTargetTriple();
 	TheModule->setTargetTriple(TargetTriple);
 
@@ -718,4 +712,64 @@ int ObjectCodeGen()
 	outs() << "Wrote " << Filename << "\n";
 
 	return 0;
+}
+
+void InitializeTargets()
+{
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
+	llvm::InitializeAllTargetInfos();
+	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
+	llvm::InitializeAllAsmPrinters();
+}
+
+Type* GetLLVMTypeFromDataType(DataType* dt)
+{
+	switch(*dt)
+	{
+	case DT_I8:
+		return IntegerType::get(*TheContext, 8);
+	case DT_I32:
+		return IntegerType::get(*TheContext, 32);
+	case DT_I64:
+		return IntegerType::get(*TheContext, 64);
+	case DT_DOUBLE:
+		return Type::getDoubleTy(*TheContext);
+	case DT_FLOAT:
+		return Type::getFloatTy(*TheContext);
+	case DT_VOID:
+	case DT_BOOL:
+	case DT_CHAR:
+	case DT_UNKNOWN:
+	default:
+		return nullptr;
+	}
+}
+
+Value* GetValueFromDataType(DataType* dt, double Val)
+{
+	auto type = GetLLVMTypeFromDataType(dt);
+
+	switch (*dt)
+	{
+	case DT_I8:
+		return ConstantInt::get(*TheContext, APInt(8, Val));
+	case DT_I32:
+		return ConstantInt::get(*TheContext, APInt(32, Val));
+	case DT_I64:
+		return ConstantInt::get(*TheContext, APInt(64, Val));
+	case DT_DOUBLE:
+		return ConstantFP::get(*TheContext, APFloat(Val));
+	case DT_FLOAT:
+		return ConstantFP::get(*TheContext, APFloat(Val));
+	case DT_VOID:
+	case DT_BOOL:
+	case DT_CHAR:
+	case DT_UNKNOWN:
+	default:
+		return nullptr;
+	}
+
 }

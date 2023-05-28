@@ -3,11 +3,11 @@
 #include "lexer.h"
 #include "../utils/util.h"
 #include <map>
-#include <stack>
 
 std::map<char, int> Parser::BinopPrecedence;
 std::unique_ptr<ExprAST> LogError(const char* Str);
 std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
+std::map<std::string, DataType> KnownVars;
 
 
 void Parser::Parse(bool jit)
@@ -139,14 +139,30 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 
 	if (lookahead.type != TokenType_LPAREN)
 	{
-		return std::make_unique<VariableExprAST>(id_name);
+		if (KnownVars.count(id_name) > 0)
+			return std::make_unique<VariableExprAST>(id_name, KnownVars[id_name]);
+		if (lookahead.type == TokenType_COLON)
+		{
+			//LogError("Expected ':' after identifier!");
+			fprintf(stderr, "[PIDENT] Lookahead type is: %d\n", lookahead.type);
+			auto dt = EvaluateDataTypeOfToken(2);
+			KnownVars[id_name] = dt;
+
+			return std::make_unique<VariableExprAST>(id_name, dt);
+		}
+		//return std::make_unique<VariableExprAST>(id_name, EvaluateDataTypeOfToken(2));
 	}
+
+	getNextToken();
 
 	// This is vor single vars
 	if ((CurTok != TokenType_SEMICOLON && 
 		(IsOperator(lookahead.type) || lookahead.type == TokenType_SEMICOLON) &&
 		lookahead.type != TokenType_LPAREN) || lookahead.type == TokenType_RPAREN)
-		return std::make_unique<VariableExprAST>(id_name);
+	{
+		fprintf(stderr, "[PIDENT] Lookahead type is: %d\n", lookahead.type);
+		return std::make_unique<VariableExprAST>(id_name, EvaluateDataTypeOfToken(1));
+	}
 	
 	// If we're here, it's a function call
 	fprintf(stderr, "[IMPORTANT] Calling ParseCallExpr from ParseIdentExpr!!\n");
@@ -207,7 +223,13 @@ std::unique_ptr<ExprAST> Parser::ParseCallArgsExpr()
 	if (lookahead.type == TokenType_COMMA || lookahead.type == TokenType_RPAREN)
 	{
 		if (CurTok == TokenType_IDENTIFIER)
-			return std::make_unique<VariableExprAST>(id_name);
+		{
+			getNextToken(); // eat colon
+			getNextToken();
+			fprintf(stderr, "[ParseCallArgsExpr] Lookahead type is: %d\n", lookahead.type);
+			//TODO: remeber initialized vars and their datatype
+			return std::make_unique<VariableExprAST>(id_name, EvaluateDataTypeOfToken(0));
+		}
 		return ParseNumberExpr();
 	}
 
@@ -330,19 +352,29 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 
 
 	printf("[PARSER] FnName for prototype: %s\n", FnName.c_str());
-	std::string ReturnType;
+	DataType ReturnType = DT_VOID;
 
 	//getNextToken();
 
 	if (CurTok != TokenType_LPAREN)
 		return LogErrorP("Expected '(' in prototype");
 
-	std::vector<std::string> ArgNames;
+	std::vector< std::pair<std::string, DataType>> ArgNames;
 	Token nextToken = getNextToken();
+	auto lookahead = PeekNextToken();
 	while (nextToken.type != TokenType_RPAREN)
 	{
-		if (nextToken.type != TokenType_COMMA)
-			ArgNames.push_back(nextToken.contents);
+		if (nextToken.type != TokenType_COMMA && nextToken.type != TokenType_DT) 
+		{
+			DataType dt;
+			if (lookahead.type == TokenType_COLON)
+			{
+				getNextToken(); // eat up colon
+				fprintf(stderr, "[ParsePrototype] Lookahead type is: %d, nextToken: %d\n", lookahead.type, nextToken.type);
+				dt = EvaluateDataTypeOfToken(1);
+				ArgNames.push_back(std::make_pair(nextToken.contents, dt));
+			}
+		}
 		nextToken = getNextToken();
 	}
 
@@ -359,9 +391,9 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 
 		Token tok = getNextToken(); // eat '->'
 
-		if (CurTok != TokenType_I32 && CurTok != TokenType_I64)
-			return LogErrorP("Expected valid return type (i32/i64) in prototype");
-		ReturnType = tok.contents;
+		if (CurTok != TokenType_DT)
+			return LogErrorP("Expected valid return type (i8/i32/i64/double) in prototype");
+		ReturnType = EvaluateDataTypeOfToken(0);
 
 		getNextToken(); // eat up the return type;
 	}
@@ -370,7 +402,7 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	if (Kind && ArgNames.size() != Kind)
 		return LogErrorP("Invalid number of operands for operator");
 
-	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames), Kind != 0, BinaryPrecedence);
+	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames), ReturnType, Kind != 0, BinaryPrecedence);
 }
 
 std::unique_ptr<FunctionAST> Parser::ParseFnDef()
@@ -396,7 +428,7 @@ std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 	if (auto E = ParseExpression()) {
 		// Make an anonymous proto.
 		auto Proto = std::make_unique<PrototypeAST>("__anon_expr",
-			std::vector<std::string>());
+			std::vector<std::pair<std::string, DataType>>(), DT_VOID);
 		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
 	}
 	return nullptr;
@@ -445,6 +477,11 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 
 	std::string IdName = PeekCurrentToken().contents;
 	getNextToken();  // eat identifier.
+	if (CurTok != TokenType_COLON)
+		return LogError("expected ':' after loop var");
+	getNextToken(); // eat colon
+	auto LoopVarDT = EvaluateDataTypeOfToken(1);
+	getNextToken(); // eat datatype
 
 	if (CurTok != TokenType_EQL)
 		return LogError("expected '=' after for");
@@ -480,7 +517,7 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	if (!Body)
 		return nullptr;
 
-	return std::make_unique<ForExprAST>(IdName, std::move(Start),
+	return std::make_unique<ForExprAST>(IdName, LoopVarDT, std::move(Start),
 		std::move(End), std::move(Step),
 		std::move(Body));
 }
@@ -508,6 +545,8 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 	if (CurTok != TokenType_IDENTIFIER)
 		return LogError("Expected identifier after 'let'");
 
+	DataType dt;
+
 	while (true)
 	{
 		std::string Name = PeekCurrentToken().contents;
@@ -515,9 +554,16 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 
 		std::unique_ptr<ExprAST> Init;
 
+		if (CurTok == TokenType_COLON)
+		{
+			getNextToken(); // eat up colon
+			dt = EvaluateDataTypeOfToken(1);
+			getNextToken(); // eat up dt
+		}
+
 		if (CurTok == TokenType_EQL)
 		{
-			getNextToken(); // eat uo '='
+			getNextToken(); // eat up '='
 
 			Init = ParseExpression();
 			if (!Init)
@@ -543,7 +589,7 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 	if (!Body)
 		return nullptr;
 
-	return std::make_unique<LetExprAST>(std::move(VarNames), std::move(Body));
+	return std::make_unique<LetExprAST>(std::move(VarNames), std::move(Body), dt);
 }
 // Handlers
 
@@ -670,6 +716,11 @@ void Parser::outputVals()
 	}
 }
 
+Token Parser::PeekNextNextToken()
+{
+	return Tokens.tokens[Position + 1];
+}
+
 Token Parser::PeekNextToken()
 {
 	return Tokens.tokens[Position];
@@ -689,6 +740,47 @@ std::unique_ptr<ExprAST> LogError(const char* Str) {
 std::unique_ptr<PrototypeAST> LogErrorP(const char* Str) {
 	LogError(Str);
 	return nullptr;
+}
+
+// 0 = Current, 1 = next, 2 = next next
+DataType Parser::EvaluateDataTypeOfToken(int tokenPos)
+{
+	Token token;
+	switch (tokenPos)
+	{
+	case 0: { token = PeekCurrentToken(); break; }
+	case 1: { token = PeekNextToken(); break; }
+	case 2: { token = PeekNextNextToken(); break; }
+	default: { LogError("Specify 0, 1 or 2 as tokenPos at EvaluateDataTypeOfToken! "); break; }
+	}
+
+	fprintf(stderr, "Got token %s\n", token.contents);
+
+	if (strcompare(token.contents, "i8"))
+	{
+		printf("Returning i8\n");
+		return DT_I8;
+	}
+	if (strcompare(token.contents, "i32"))
+	{
+		printf("Returning i32\n");
+		return DT_I32;
+	}
+	if (strcompare(token.contents, "i64"))
+	{
+		printf("Returning i64\n");
+		return DT_I64;
+	}
+	if (strcompare(token.contents, "double"))
+		return DT_DOUBLE;
+	if (strcompare(token.contents, "bool"))
+		return DT_BOOL;
+	if (strcompare(token.contents, "float"))
+		return DT_FLOAT;
+	if (strcompare(token.contents, "void"))
+		return DT_VOID;
+
+	return DT_UNKNOWN;
 }
 
 

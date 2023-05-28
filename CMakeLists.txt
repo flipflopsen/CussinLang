@@ -12,7 +12,6 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("CussingLangImpl")
 
-#set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 
 #if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -23,21 +22,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
-
-# Set compiler options
-#set(CMAKE_CXX_COMPILER "clang++")
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_FLAGS "-stdlib=libc++ -g -O3 ")
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# Set LLVM flags
-#execute_process(
-#  COMMAND llvm-config --cxxflags --ldflags --system-libs --libs all
-#  OUTPUT_VARIABLE LLVM_CONFIG_OUTPUT
-#  OUTPUT_STRIP_TRAILING_WHITESPACE
-#)
-#string(REGEX REPLACE "(\n|\r)+$" "" LLVM_CONFIG_OUTPUT "${LLVM_CONFIG_OUTPUT}")
-#separate_arguments(LLVM_CONFIG_FLAGS NATIVE_COMMAND ${LLVM_CONFIG_OUTPUT})
 
 
 # Find LLVM package
@@ -58,14 +42,14 @@ set(SOURCES
 		"src/llvmstuff/codegen.h"
 		"src/llvmstuff/codegen.cpp"
 		"src/jit/CussinJIT.h"
-)
+ "src/utils/DataTypes.h")
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
 
 # Link LLVM libraries and flags
 llvm_map_components_to_libnames(LLVM_LIBS
-  all
+  #all
   Analysis
   Core
   ExecutionEngine
