@@ -1,8 +1,7 @@
-#include "parser.h"
-
-#include "lexer.h"
-#include "../utils/util.h"
 #include <map>
+
+#include "parser.h"
+#include "../utils/util.h"
 
 std::map<char, int> Parser::BinopPrecedence;
 std::unique_ptr<ExprAST> LogError(const char* Str);

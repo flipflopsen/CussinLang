@@ -13,7 +13,7 @@ constexpr bool jit = false;
 
 const std::vector<std::string> inputs =
 {
-	"fn doubleit(x: i8, y: i8) -> i8 { (x + y) * 2 ; }"
+	"fn doubleit(x: i64, y: i64) -> i64 { (x + y) * 2 ; }"
 	//"fn binary : 1 (x y) { y; }",
 	//"fn test(x) -> i64 { let y = x in test(y);"
 	//"extern printd(x);",

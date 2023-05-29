@@ -1,4 +1,11 @@
 #include "codegen.h"
+#include "visitors.h"
+
+#include <codecvt>
+#include <iostream>
+#include <map>
+
+#include "../lang/parser.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -23,12 +30,6 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/TargetParser/Host.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
-//#include "../jit/CussinJIT.h"
-#include <codecvt>
-#include <iostream>
-
-#include "../lang/parser.h"
-#include <map>
 
 using namespace llvm;
 using namespace llvm::sys;
@@ -56,6 +57,7 @@ static ExecutionEngine* engine;
 //static std::unique_ptr<orc::CussinJIT> TheJIT;
 static ExitOnError ExitOnErr;
 
+
 Function* getFunction(std::string Name) {
 	CodegenVisitor visitor;
 	// First, see if the function has already been added to the current module.
@@ -72,88 +74,6 @@ Function* getFunction(std::string Name) {
 	return nullptr;
 }
 
-
-// Visitor implementations
-
-Value *CodegenVisitor::visit(NumberExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting NumberExprAST\n");
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value *CodegenVisitor::visit(VariableExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting VariableExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value *CodegenVisitor::visit(BinaryExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting BinaryExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value *CodegenVisitor::visit(CallExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting CallExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Function *CodegenVisitor::visit(PrototypeAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting PrototypeAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Function *CodegenVisitor::visit(FunctionAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting FunctionAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value* CodegenVisitor::visit(IfExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting IfExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value* CodegenVisitor::visit(ForExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting ForExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value* CodegenVisitor::visit(UnaryExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting UnaryExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
-Value* CodegenVisitor::visit(LetExprAST* ast)
-{
-	//printf("[CODEGEN] CodegenVisitor is visiting VarExprAST\n");
-
-	auto ret = ast->codegen();
-	//TheModule->print(errs(), nullptr);
-	return ret;
-}
 
 // Codegen implementations
 

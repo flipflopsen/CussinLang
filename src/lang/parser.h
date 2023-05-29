@@ -1,11 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include <map>
 
 #include "../utils/Datatypes.h"
 #include "lexer.h"
-#include <map>
-
-#include "ast.h"
+#include "ast/ast.h"
 
 class Parser
 {

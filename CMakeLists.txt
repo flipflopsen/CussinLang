@@ -42,7 +42,19 @@ set(SOURCES
 		"src/llvmstuff/codegen.h"
 		"src/llvmstuff/codegen.cpp"
 		"src/jit/CussinJIT.h"
- "src/utils/DataTypes.h")
+		"src/utils/DataTypes.h" 
+		"src/lang/ast/ast.h"
+		"src/lang/ast/BinaryExpressionAST.h"
+		"src/lang/ast/CallExpressionAST.h"
+		"src/lang/ast/ForExpressionAST.h"
+		"src/lang/ast/FunctionExpressionAST.h"
+		"src/lang/ast/IfExpressionAST.h"
+		"src/lang/ast/LetExpressionAST.h"
+		"src/lang/ast/NumberExpressionAST.h"
+		"src/lang/ast/PrototypeExpressionAST.h"
+		"src/lang/ast/UnaryExpressionAST.h"
+		"src/lang/ast/VariableExpressionAST.h"
+ "src/lang/ast/ExpressionAST.h" "src/lang/ast/Visitor.h" "src/llvmstuff/visitors.h")
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})

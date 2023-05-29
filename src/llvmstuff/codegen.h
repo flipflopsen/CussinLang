@@ -1,7 +1,7 @@
 #ifndef CODEGEN_H
 #define CODEGEN_H
 
-#include "../lang/ast.h"
+#include "../lang/ast/ast.h"
 #include "../utils/Datatypes.h"
 
 
