@@ -6,9 +6,10 @@
 
 class NumberExprAST : public ExprAST {
 	double Val;
+	DataType dt;
 
 public:
-	NumberExprAST(double val) : Val(val) {}
+	NumberExprAST(double val, DataType dt = DT_I32) : Val(val), dt(dt) {}
 
 	Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);

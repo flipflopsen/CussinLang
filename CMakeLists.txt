@@ -4,25 +4,17 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Enable Hot Reload for MSVC compilers if supported.
-#if (POLICY CMP0141)
-#  cmake_policy(SET CMP0141 NEW)
-#  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-#endif()
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
 
 
 project ("CussingLangImpl")
 
 set(CMAKE_CXX_STANDARD 17)
 
-#if (CMAKE_VERSION VERSION_GREATER 3.12)
-#  set_property(TARGET CussingLangImpl PROPERTY CXX_STANDARD 17)
-#  set(BUILD_ARCH "-m64")
-#  set(TARGET_64 ON)
-#endif()
-
-
 set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
-
 
 # Find LLVM package
 find_package(LLVM REQUIRED CONFIG)
@@ -54,7 +46,10 @@ set(SOURCES
 		"src/lang/ast/PrototypeExpressionAST.h"
 		"src/lang/ast/UnaryExpressionAST.h"
 		"src/lang/ast/VariableExpressionAST.h"
- "src/lang/ast/ExpressionAST.h" "src/lang/ast/Visitor.h" "src/llvmstuff/visitors.h")
+		"src/lang/ast/ExpressionAST.h" 
+		"src/lang/ast/Visitor.h"
+		"src/llvmstuff/visitors.h"
+)
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})

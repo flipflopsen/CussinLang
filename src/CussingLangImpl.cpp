@@ -13,9 +13,10 @@ constexpr bool jit = false;
 
 const std::vector<std::string> inputs =
 {
-	"fn doubleit(x: i64, y: i64) -> i64 { (x + y) * 2 ; }"
+	//"fn doubleit(x: i32, y: i32) -> i32 { (x + y) * 2 ; }"
 	//"fn binary : 1 (x y) { y; }",
-	//"fn test(x) -> i64 { let y = x in test(y);"
+	"fn test(x: i32) -> i32 { let y: i32 = 2 in x + y;"
+	"test(1);"
 	//"extern printd(x);",
 	//"fn test(x) -> i64 { printd(x) : x = 4 : printd(x);"
 	//"fn fib(x) -> i64 {if (x < 3) then 1 else fib(x-1) + fib(x-2);"
@@ -59,7 +60,7 @@ void MainLoop()
 		auto parser = Parser(token_array);
 		parser.Parse(jit);
 
-		ObjectCodeGen();
+		//ObjectCodeGen();
 
 		ctr++;
 		//DeleteTokens(token_array);
@@ -74,7 +75,7 @@ int main()
 
 	InitializeTargets();
 
-	InitializeModule(true);
+	InitializeModule(false);
 
 	//InitializeJIT();
 

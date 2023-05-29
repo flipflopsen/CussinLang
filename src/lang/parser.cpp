@@ -126,6 +126,7 @@ std::unique_ptr<ExprAST> Parser::ParseNumberExpr()
 {
 	auto const token = PeekCurrentToken().contents;
 	fprintf(stderr, "[PARSER-NR] Parsing number expression for token: %s\n", token);
+	//Todo: figure out datatype of number, maybe with casting or sth, rn it defaults to i32
 	auto result = std::make_unique<NumberExprAST>(strtoint(token));
 	return std::move(result);
 }
@@ -204,8 +205,6 @@ std::unique_ptr<ExprAST> Parser::ParseCallExpr()
 
 				}
 			}
-
-
 			getNextToken();
 		}
 	}
@@ -215,6 +214,9 @@ std::unique_ptr<ExprAST> Parser::ParseCallExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseCallArgsExpr()
 {
+	if (CurTok == TokenType_LPAREN)
+		getNextToken();
+
 	std::string id_name = PeekCurrentToken().contents;
 
 	auto const lookahead = PeekNextToken();
@@ -223,6 +225,8 @@ std::unique_ptr<ExprAST> Parser::ParseCallArgsExpr()
 	{
 		if (CurTok == TokenType_IDENTIFIER)
 		{
+			if (KnownVars.count(id_name) > 0)
+				return std::make_unique<VariableExprAST>(id_name, KnownVars[id_name]);
 			getNextToken(); // eat colon
 			getNextToken();
 			fprintf(stderr, "[ParseCallArgsExpr] Lookahead type is: %d\n", lookahead.type);
@@ -372,6 +376,7 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 				fprintf(stderr, "[ParsePrototype] Lookahead type is: %d, nextToken: %d\n", lookahead.type, nextToken.type);
 				dt = EvaluateDataTypeOfToken(1);
 				ArgNames.push_back(std::make_pair(nextToken.contents, dt));
+				KnownVars[nextToken.contents] = dt;
 			}
 		}
 		nextToken = getNextToken();
@@ -556,8 +561,9 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 		if (CurTok == TokenType_COLON)
 		{
 			getNextToken(); // eat up colon
-			dt = EvaluateDataTypeOfToken(1);
+			dt = EvaluateDataTypeOfToken(0);
 			getNextToken(); // eat up dt
+			KnownVars[Name] = dt;
 		}
 
 		if (CurTok == TokenType_EQL)
@@ -676,17 +682,17 @@ void DebugAST()
 
 Token Parser::getNextToken()
 {
-	Token tok = Parser::Tokens.tokens[Position];
+	Token tok = Tokens.tokens[Position];
 	CurTok = tok.type;
 	if (Position < Count)
 	{
+		fprintf(stderr, "[PARSER] Getting token nr. %d val: %s, type: %d \n", Position, tok.contents, tok.type);
 		Position++;
 	}
 	else
 	{
 		//Todo: delete token array and signal done.
 	}
-	fprintf(stderr, "[PARSER] Getting token nr. %d val: %s, type: %d \n", Position, tok.contents, tok.type);
 	return tok;
 }
 

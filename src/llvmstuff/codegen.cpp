@@ -80,6 +80,7 @@ Function* getFunction(std::string Name) {
 Value *NumberExprAST::codegen()
 { 
 	printf("[CODEGEN] Performing code generation for NumberExprAST.\n");
+	return GetValueFromDataType(&dt, Val);
 	return ConstantInt::get(*TheContext, APInt(64, Val));
 }
 
@@ -126,6 +127,8 @@ Value *BinaryExprAST::codegen()
 		printf("Returning nullptr\n");
 		return nullptr;
 	}
+
+	//Todo: compare types of L and R and do error handling with casting or sth.
 
 	switch (Op) {
 	case '+':
@@ -180,8 +183,8 @@ Function *PrototypeAST::codegen()
 {
 	printf("[CODEGEN] Performing code generation for PrototypeAST.\n");
 
-	Type* returnType = Type::getInt64Ty(*TheContext);
-	returnType = GetLLVMTypeFromDataType(&this->returnType);
+	//Type* returnType = Type::getInt64Ty(*TheContext);
+	Type* returnType = GetLLVMTypeFromDataType(&this->returnType);
 
 	std::vector<Type*> paramTypes;
 	for (const auto& arg : Args) {
@@ -354,6 +357,8 @@ Value* IfExprAST::codegen()
 
 Value* ForExprAST::codegen()
 {
+	printf("[CODEGEN] Performing code generation for ForAST.\n");
+
 	CodegenVisitor visitor;
 
 	// Get TheFunction
@@ -450,6 +455,8 @@ Value* ForExprAST::codegen()
 
 Value* UnaryExprAST::codegen()
 {
+	printf("[CODEGEN] Performing code generation for UnaryAST.\n");
+
 	CodegenVisitor visitor;
 	Value* OperandV = Operand->accept(&visitor);
 	if (!OperandV)
@@ -464,6 +471,7 @@ Value* UnaryExprAST::codegen()
 
 Value* LetExprAST::codegen()
 {
+	printf("[CODEGEN] Performing code generation for LetAST.\n");
 	CodegenVisitor visitor;
 
 	std::vector<AllocaInst*> OldBindings;
@@ -660,6 +668,7 @@ Type* GetLLVMTypeFromDataType(DataType* dt)
 	case DT_FLOAT:
 		return Type::getFloatTy(*TheContext);
 	case DT_VOID:
+		return Type::getVoidTy(*TheContext);
 	case DT_BOOL:
 	case DT_CHAR:
 	case DT_UNKNOWN:
