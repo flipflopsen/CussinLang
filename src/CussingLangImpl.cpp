@@ -10,6 +10,7 @@
 using namespace std;
 
 constexpr bool jit = false;
+constexpr bool optimizations = true;
 
 const std::vector<std::string> inputs =
 {
@@ -77,7 +78,7 @@ int main()
 
 	InitializeTargets();
 
-	InitializeModule(false);
+	InitializeModule(optimizations);
 
 	//InitializeJIT();
 

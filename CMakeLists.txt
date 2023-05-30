@@ -16,12 +16,31 @@ set(CMAKE_CXX_STANDARD 17)
 
 set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
 
+# Add vcpkg toolchain
+set(CMAKE_TOOLCHAIN_FILE "G:\\Programme\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
+
+# Include GTest
+set(GTEST_ROOT "G:\\Programme\\vcpkg\\installed\\x64-windows" CACHE PATH "GTest root directory")
+
+set(GTEST_INCLUDE_DIRS "${GTEST_ROOT}\\include")
+include_directories("${GTEST_INCLUDE_DIRS}")
+set(GTEST_LIBRARIES "${GTEST_ROOT}\\lib\\gtest.lib")
+set(GMOCK_INCLUDE_DIRS "${GTEST_ROOT}\\include")
+set(GMOCK_LIBRARIES "${GTEST_ROOT}\\lib\\gmock.lib")
+set(GMOCK_MAIN_LIBRARIES "${GTEST_ROOT}\\lib\\gmock_main.lib")
+
 # Find LLVM package
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
+
+find_package(GTest REQUIRED CONFIG)
+
+enable_testing()
 
 set(SOURCES
 		"src/lang/lexer.cpp"
@@ -51,6 +70,7 @@ set(SOURCES
 		"src/lang/ast/ExpressionAST.h" 
 		"src/lang/ast/Visitor.h"
 		"src/llvmstuff/visitors.h"
+		"src/test/CussinLangImplTest.cpp"
 )
 
 # Add source to this project's executable.
@@ -76,4 +96,4 @@ foreach(target ${LLVM_TARGETS_TO_BUILD})
   list(APPEND targets "LLVM${target}CodeGen")
 endforeach()
 
-target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets})
+target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
