@@ -1,3 +1,7 @@
+#ifndef VISITORS_H
+#define VISITORS_H
+
+
 #include "codegen.h"
 
 // Visitor implementations
@@ -75,9 +79,27 @@ Value* CodegenVisitor::visit(UnaryExprAST* ast)
 }
 Value* CodegenVisitor::visit(LetExprAST* ast)
 {
-	//printf("[CODEGEN] CodegenVisitor is visiting VarExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting LetExprAST\n");
 
 	auto ret = ast->codegen();
 	//TheModule->print(errs(), nullptr);
 	return ret;
 }
+Value* CodegenVisitor::visit(StructExprAST* ast)
+{
+	//printf("[CODEGEN] CodegenVisitor is visiting StructExprAST\n");
+
+	auto ret = ast->codegen();
+	//TheModule->print(errs(), nullptr);
+	return ret;
+}
+Value* CodegenVisitor::visit(ReturnExprAST* ast)
+{
+	//printf("[CODEGEN] CodegenVisitor is visiting StructExprAST\n");
+
+	auto ret = ast->codegen();
+	//TheModule->print(errs(), nullptr);
+	return ret;
+}
+
+#endif

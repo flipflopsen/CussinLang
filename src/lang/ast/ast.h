@@ -12,6 +12,8 @@
 #include "PrototypeExpressionAST.h"
 #include "UnaryExpressionAST.h"
 #include "VariableExpressionAST.h"
+#include "StructExpressionAST.h"
+#include "ReturnExpressionAST.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/IRBuilder.h"
@@ -29,6 +31,8 @@ public:
 	llvm::Value* visit(ForExprAST* ast) override;
 	llvm::Value* visit(UnaryExprAST* ast) override;
 	llvm::Value* visit(LetExprAST* ast) override;
+	llvm::Value* visit(StructExprAST* ast) override;
+	llvm::Value* visit(ReturnExprAST* ast) override;
 
 	llvm::Function* visit(PrototypeAST* ast) override;
 	llvm::Function* visit(FunctionAST* ast) override;

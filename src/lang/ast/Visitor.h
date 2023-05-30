@@ -14,6 +14,8 @@ class IfExprAST;
 class ForExprAST;
 class UnaryExprAST;
 class LetExprAST;
+class StructExprAST;
+class ReturnExprAST;
 
 using namespace llvm;
 
@@ -29,11 +31,12 @@ public:
 	virtual Value* visit(ForExprAST* ast) = 0;
 	virtual Value* visit(UnaryExprAST* ast) = 0;
 	virtual Value* visit(LetExprAST* ast) = 0;
+	virtual Value* visit(StructExprAST* ast) = 0;
+	virtual Value* visit(ReturnExprAST* ast) = 0;
 
 	virtual Function* visit(PrototypeAST* ast) = 0;
 	virtual Function* visit(FunctionAST* ast) = 0;
 	//virtual void visit(DoExprAST* ast) = 0;
-	//virtual void visit(StructExprAST* ast) = 0;
 	//virtual void visit(EnumExprAST* ast) = 0;
 };
 

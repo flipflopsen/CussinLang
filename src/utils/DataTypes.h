@@ -12,6 +12,7 @@ enum DataType
 	DT_I64,
 	DT_DOUBLE,
 	DT_FLOAT,
+	DT_STRUCT,
 
 	/* Pointers */
 	DT_POINTER_TO_INT,

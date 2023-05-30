@@ -217,7 +217,7 @@ Function *FunctionAST::codegen()
 	printf("[CODEGEN] Performing code generation for FunctionAST.\n");
 
 	// Transfer ownership of the prototype to the FunctionProtos map, but keep a
-  // reference to it for use below.
+	// reference to it for use below.
 	auto& P = *Proto;
 	FunctionProtos[Proto->getName()] = std::move(Proto);
 	Function* TheFunction = getFunction(P.getName());
@@ -257,45 +257,50 @@ Function *FunctionAST::codegen()
 
 	CodegenVisitor visitor;
 
-	// Generate the code for the body expression
-	if (Value* RetVal = Body->accept(&visitor)) {
-		// Finish off the function.
-		printf("[CODEGEN] Finishing off function!\n");
-		if (Builder != nullptr)
+	// Generate the code for each expression in the body
+	for (const auto& Expr : Body)
+	{
+		if (Value* RetVal = Expr->accept(&visitor))
 		{
-			Builder->CreateRet(RetVal);
-
-			if (TheFunction != nullptr)
+			// Check if any error occurred during code generation
+			if (RetVal == nullptr)
 			{
-				if (!verifyFunction(*TheFunction))
-				{
-					printf("[CODEGEN-VERIFIED] Function is ok!\n");
-					TheFPM->run(*TheFunction);
-				}
-
-			}
-			else
-			{
-				printf("[CODEGEN-ERR] TheFunction is null!\n");
+				TheFunction->eraseFromParent();
+				return nullptr;
 			}
 		}
 		else
 		{
-			printf("[CODEGEN-ERR] BuilderPtr is null!\n");
+			TheFunction->eraseFromParent();
+			return nullptr;
 		}
-
-
-		return TheFunction;
 	}
 
-	TheModule->print(errs(), nullptr);
-	// TODO: Better error handling
-	TheFunction->eraseFromParent();
+	// Finish off the function.
+	printf("[CODEGEN] Finishing off function!\n");
+	if (Builder != nullptr)
+	{
+		//Builder->CreateRetVoid();
 
-	if (P.isBinaryOp())
-		Parser::BinopPrecedence.erase(P.getOperatorName());
+		if (TheFunction != nullptr)
+		{
+			if (!verifyFunction(*TheFunction))
+			{
+				printf("[CODEGEN-VERIFIED] Function is ok!\n");
+				TheFPM->run(*TheFunction);
+			}
+		}
+		else
+		{
+			printf("[CODEGEN-ERR] TheFunction is null!\n");
+		}
+	}
+	else
+	{
+		printf("[CODEGEN-ERR] BuilderPtr is null!\n");
+	}
 
-	return nullptr;
+	return TheFunction;
 }
 
 Value* IfExprAST::codegen()
@@ -511,6 +516,10 @@ Value* LetExprAST::codegen()
 		NamedValues[VarName] = Alloca;
 	}
 	// Codegen the body, now that all vars are in scope.
+	if (Body == nullptr)
+	{
+		return GetValueFromDataType(&this->dt);
+	}
 	Value* BodyVal = Body->accept(&visitor);
 	if (!BodyVal)
 		return nullptr;
@@ -521,6 +530,25 @@ Value* LetExprAST::codegen()
 
 	// Return the body computation.
 	return BodyVal;
+}
+
+Value* StructExprAST::codegen()
+{
+
+	return nullptr;
+}
+
+Value* ReturnExprAST::codegen()
+{
+	CodegenVisitor visitor;
+
+	Value* Result = ReturnValue->accept(&visitor);
+	if (!Result)
+		return nullptr;
+
+	// Emit the return instruction
+	Builder->CreateRet(Result);
+	return Result;
 }
 
 // CreateEntryBlockAlloca - Create an alloca instr in the entry block of the function

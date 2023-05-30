@@ -44,15 +44,13 @@ void Parser::Parse(bool jit)
 	}
 	else
 	{
-		while (Position < Count) {
+		while (Position < Count && CurTok != TokenType_EOF) {
 			getNextToken();
+			fprintf(stderr, "[PARSER-ENTRY] Current token is %d\n", CurTok);
 			switch (CurTok) {
-			case TokenType_EOF:
-				return;
 			case TokenType_SEMICOLON:
 				printf("Got semicolon !\n");
 				getNextToken();
-				break;
 			case TokenType_FN:
 				HandleDefinition();
 				break;
@@ -66,6 +64,7 @@ void Parser::Parse(bool jit)
 		}
 	}
 }
+
 
 std::unique_ptr<ExprAST> Parser::ParseExpression() {
 	auto LHS = ParseUnary();
@@ -108,6 +107,9 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	case TokenType_LET:
 		printf("[PARSER] Parsing LET Expression\n");
 		return ParseLetExpr();
+	case TokenType_RETURN:
+		printf("[PARSER] Parsing return Expression\n");
+		return ParseReturnExpr();
 	case TokenType_EOF:
 		printf("[PARSER] Parsing of File is done!\n");
 		return nullptr;
@@ -420,20 +422,29 @@ std::unique_ptr<FunctionAST> Parser::ParseFnDef()
 		LogError("Expected '{' for function def");
 	fprintf(stderr, "[PARSER] Starting to parse body for %s\n", Tokens.tokens[1].contents);
 
-	getNextToken(); // eat {
+	//getNextToken(); // eat {
 
-	if (auto E = ParseExpression())
-		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
-	return nullptr;
+	auto Body = ParseBlock();
+	if (Body.empty())
+	{
+		printf("[PARSER-ERR] Body is empty!\n");
+		return nullptr;
+	}
+
+	return std::make_unique<FunctionAST>(std::move(Proto), std::move(Body));
 }
 
 std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 {
+	printf("[PARSER-TLE] Starting to parse TLE!\n");
+	std::vector<std::unique_ptr<ExprAST>> body;
 	if (auto E = ParseExpression()) {
 		// Make an anonymous proto.
 		auto Proto = std::make_unique<PrototypeAST>("__anon_expr",
 			std::vector<std::pair<std::string, DataType>>(), DT_VOID);
-		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
+		body.push_back(std::move(E));
+		//TODO: Error is here
+		return std::make_unique<FunctionAST>(std::move(Proto), std::move(body));
 	}
 	return nullptr;
 }
@@ -586,7 +597,12 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 	}
 
 	if (CurTok != TokenType_IN)
-		return LogError("expected 'in' keyword after 'let'");
+	{
+		printf("[PARSER-LET] Encountered 'let' without 'in'!\n");
+		return std::make_unique<LetExprAST>(std::move(VarNames), nullptr, dt);
+
+		//return LogError("expected 'in' keyword after 'let'");
+	}
 	getNextToken(); // eat 'in'
 
 	auto Body = ParseExpression();
@@ -596,6 +612,52 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 
 	return std::make_unique<LetExprAST>(std::move(VarNames), std::move(Body), dt);
 }
+
+std::unique_ptr<ExprAST> Parser::ParseStructExpr()
+{
+
+	return nullptr;
+}
+
+std::unique_ptr<ExprAST> Parser::ParseReturnExpr()
+{
+	getNextToken(); // Eat the "return" token
+	auto Expr = ParseExpression();
+	return std::make_unique<ReturnExprAST>(std::move(Expr));
+}
+
+std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
+{
+	std::vector<std::unique_ptr<ExprAST>> statements;
+
+	if (CurTok != TokenType_LBRACE)
+	{
+		LogError("Expected '{' at beginning of block");
+		return statements;
+	}
+	getNextToken(); // eat {
+
+	while (CurTok != TokenType_RBRACE && CurTok != TokenType_EOF)
+	{
+		auto statement = ParseExpression();
+		if (!statement)
+			break;
+
+		statements.push_back(std::move(statement));
+	}
+
+	if (CurTok != TokenType_RBRACE)
+	{
+		LogError("Expected '}' at the end of block");
+		return statements;
+	}
+
+	getNextToken(); // eat }
+
+	return statements;
+}
+
+
 // Handlers
 
 void Parser::HandleDefinition()
@@ -760,6 +822,12 @@ DataType Parser::EvaluateDataTypeOfToken(int tokenPos)
 	}
 
 	fprintf(stderr, "Got token %s\n", token.contents);
+
+	if (strcompare(token.contents, "struct"))
+	{
+		printf("Returning i32\n");
+		return DT_STRUCT;
+	}
 
 	if (strcompare(token.contents, "i8"))
 	{
