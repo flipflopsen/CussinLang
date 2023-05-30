@@ -18,18 +18,21 @@ protected:
     }
 };
 
+/*
 TEST(CussingLangImplTest, Test1)
 {
-    const std::string input = "fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2; x = z + 3; return x; }";
+    //const std::string input = "fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2; x = z + 3; return x; }";
     // Add assertions or checks here to verify the expected behavior
     // of the code for the given input.
 
     // Example assertions:
-    EXPECT_EQ(5, 2 + 3);
-    EXPECT_TRUE(true);
+    //EXPECT_EQ(5, 2 + 3);
+    //EXPECT_TRUE(true);
 }
 
 TEST(CussingLangImplTest, Test2)
 {
     // Define another test case here.
 }
+
+*/

@@ -14,12 +14,8 @@ project ("CussingLangImpl")
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Set LLVm installation directory
 set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
-
-# Add vcpkg toolchain
-set(CMAKE_TOOLCHAIN_FILE "G:\\Programme\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
-    CACHE STRING "Vcpkg toolchain file")
-
 
 # Include GTest
 set(GTEST_ROOT "G:\\Programme\\vcpkg\\installed\\x64-windows" CACHE PATH "GTest root directory")
@@ -40,7 +36,7 @@ add_definitions(${LLVM_DEFINITIONS})
 
 find_package(GTest REQUIRED CONFIG)
 
-enable_testing()
+#enable_testing()
 
 set(SOURCES
 		"src/lang/lexer.cpp"
