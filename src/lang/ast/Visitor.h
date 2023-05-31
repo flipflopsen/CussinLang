@@ -16,6 +16,7 @@ class UnaryExprAST;
 class LetExprAST;
 class StructExprAST;
 class ReturnExprAST;
+class ScopeExprAST;
 
 using namespace llvm;
 
@@ -33,6 +34,7 @@ public:
 	virtual Value* visit(LetExprAST* ast) = 0;
 	virtual Value* visit(StructExprAST* ast) = 0;
 	virtual Value* visit(ReturnExprAST* ast) = 0;
+	virtual Value* visit(ScopeExprAST* ast) = 0;
 
 	virtual Function* visit(PrototypeAST* ast) = 0;
 	virtual Function* visit(FunctionAST* ast) = 0;

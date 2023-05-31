@@ -67,6 +67,9 @@ set(SOURCES
 		"src/lang/ast/Visitor.h"
 		"src/llvmstuff/visitors.h"
 		"src/test/CussinLangImplTest.cpp"
+		"src/llvmstuff/SymbolTable.h" 
+		"src/lang/ast/ScopeExpressionAST.h"  
+		"src/llvmstuff/ScopeManager.h"
 )
 
 # Add source to this project's executable.

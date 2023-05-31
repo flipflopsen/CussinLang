@@ -86,6 +86,9 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
 		return ParseExpression();
+	case TokenType_SCOPE:
+		printf("[PARSER] Parsing Scope Expression\n");
+		return ParseScopeExpr();
 	case TokenType_IDENTIFIER:
 		printf("[PARSER] Parsing Identifier Expression\n");
 		return ParseIdentifierExpr();
@@ -268,6 +271,9 @@ std::unique_ptr<ExprAST> Parser::ParseParenExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
 {
+	if (CurTok == TokenType_RBRACE)
+		return LHS;
+
 	if (ExprPrec < 1)
 		getNextToken();
 
@@ -443,7 +449,6 @@ std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 		auto Proto = std::make_unique<PrototypeAST>("__anon_expr",
 			std::vector<std::pair<std::string, DataType>>(), DT_VOID);
 		body.push_back(std::move(E));
-		//TODO: Error is here
 		return std::make_unique<FunctionAST>(std::move(Proto), std::move(body));
 	}
 	return nullptr;
@@ -643,6 +648,8 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 		if (!statement)
 			break;
 
+		fprintf(stderr, "Parsing block, current token: %d\n", CurTok);
+
 		statements.push_back(std::move(statement));
 	}
 
@@ -652,9 +659,31 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 		return statements;
 	}
 
-	getNextToken(); // eat }
+	//getNextToken(); // eat }
 
 	return statements;
+}
+
+std::unique_ptr<ExprAST> Parser::ParseScopeExpr()
+{
+	if (CurTok != TokenType_SCOPE)
+	{
+		LogError("Expected 'scope' keyword");
+		return nullptr;
+	}
+
+	getNextToken(); // eat 'scope'
+	if (CurTok != TokenType_LBRACE)
+	{
+		LogError("Expected '{' at beginning of block");
+		return nullptr;
+	}
+
+	getNextToken(); // eat {
+
+
+
+	return nullptr;
 }
 
 

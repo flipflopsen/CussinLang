@@ -6,6 +6,7 @@
 #include <map>
 
 #include "../lang/parser.h"
+#include "ScopeManager.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -47,15 +48,14 @@ Value* LogErrorV(const char* Str) {
 }
 
 
-static std::unique_ptr<LLVMContext> TheContext;
-std::unique_ptr<Module> TheModule;
-static std::unique_ptr<IRBuilder<>> Builder;
-static std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-static std::map<std::string, AllocaInst*> NamedValues;
-static std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
-static ExecutionEngine* engine;
 //static std::unique_ptr<orc::CussinJIT> TheJIT;
-static ExitOnError ExitOnErr;
+static std::unique_ptr<LLVMContext> TheContext;
+static std::unique_ptr<legacy::FunctionPassManager> TheFPM;
+static ExecutionEngine* engine;
+std::unique_ptr<Module> TheModule;
+IRBuilder<>* Builder;
+SymbolTable symbolTable;
+ScopeManager& scopeManager = ScopeManager::getInstance();
 
 
 Function* getFunction(std::string Name) {
@@ -66,9 +66,17 @@ Function* getFunction(std::string Name) {
 
 	// If not, check whether we can codegen the declaration from some existing
 	// prototype.
+
+	//PrototypeAST* proto = symbolTable.getFunction(Name);
+	PrototypeAST* proto = scopeManager.getFunctionFromCurrentScope(Name);
+	if (proto)
+		return proto->accept(&visitor);
+
+	/*
 	auto FI = FunctionProtos.find(Name);
 	if (FI != FunctionProtos.end())
 		return FI->second->accept(&visitor);
+	*/
 
 	// If no existing prototype exists, return null.
 	return nullptr;
@@ -81,18 +89,18 @@ Value *NumberExprAST::codegen()
 { 
 	printf("[CODEGEN] Performing code generation for NumberExprAST.\n");
 	return GetValueFromDataType(&dt, Val);
-	return ConstantInt::get(*TheContext, APInt(64, Val));
 }
 
 Value *VariableExprAST::codegen()
 {
 	printf("[CODEGEN] Performing code generation for VariableExprAST.\n");
-	//Value* V = NamedValues[Name];
-	AllocaInst* A = NamedValues[Name];
+	AllocaInst* A = scopeManager.getVariableFromCurrentScope(Name);
+	//AllocaInst* A = symbolTable.getVariable(Name);
+
 	if (!A)
 		LogErrorV("Unknown variable name");
-	//return V;
-	// Return a load from the stack slot
+
+	//return Builder->CreateLoad(A->getAllocatedType(), A, Name.c_str());
 	return Builder->CreateLoad(A->getAllocatedType(), A, Name.c_str());
 }
 
@@ -113,7 +121,8 @@ Value *BinaryExprAST::codegen()
 		if (!Val)
 			return nullptr;
 
-		Value* Variable = NamedValues[LHSE->getName()];
+		//Value* Variable = symbolTable.getVariable(LHSE->getName());
+		Value* Variable = scopeManager.getVariableFromCurrentScope(LHSE->getName());
 		if (!Variable)
 			return LogErrorV("Unknown variable name.");
 
@@ -161,7 +170,8 @@ Value *CallExprAST::codegen()
 	CodegenVisitor visitor;
 
 	printf("[CODEGEN] Performing code generation for CallExprAST.\n");
-	Function* CalleeF = TheModule->getFunction(Callee);
+	//Function* CalleeF = TheModule->getFunction(Callee);
+	Function* CalleeF = getFunction(Callee);
 	if (!CalleeF)
 		return LogErrorV("Unknown function referenced");
 
@@ -219,8 +229,10 @@ Function *FunctionAST::codegen()
 	// Transfer ownership of the prototype to the FunctionProtos map, but keep a
 	// reference to it for use below.
 	auto& P = *Proto;
-	FunctionProtos[Proto->getName()] = std::move(Proto);
+	scopeManager.addFunctionToCurrentScope(P.getName(), std::move(Proto));
+	//symbolTable.addFunction(P.getName(), std::move(Proto));
 	Function* TheFunction = getFunction(P.getName());
+
 	if (!TheFunction)
 		return nullptr;
 
@@ -235,7 +247,7 @@ Function *FunctionAST::codegen()
 	Builder->SetInsertPoint(basicBlock);
 
 	// Record the function arguments in the NamedValues map.
-	NamedValues.clear();
+	//NamedValues.clear();
 
 	int ctr = 0;
 	for (auto& Arg : TheFunction->args())
@@ -247,7 +259,8 @@ Function *FunctionAST::codegen()
 		Builder->CreateStore(&Arg, Alloca);
 
 		// Add arguments to variable symbol table.
-		NamedValues[std::string(Arg.getName())] = Alloca;
+		//symbolTable.addVariable(std::string(Arg.getName()), Alloca);
+		scopeManager.addVariableToCurrentScope(std::string(Arg.getName()), Alloca);
 
 
 		//NamedValues[std::string(Arg.getName())] = &Arg;
@@ -312,6 +325,7 @@ Value* IfExprAST::codegen()
 		return nullptr;
 
 	// return ConstantInt::get(*TheContext, APInt(64, Val));
+	//TODO: Int64Ty bruh
 	CondV = Builder->CreateICmpNE(CondV, ConstantInt::get(*TheContext, APInt(64, 0)), "ifcond");
 
 	Function* TheFunction = Builder->GetInsertBlock()->getParent();
@@ -351,6 +365,8 @@ Value* IfExprAST::codegen()
 	// Emit merge block.
 	TheFunction->insert(TheFunction->end(), MergeBB);
 	Builder->SetInsertPoint(MergeBB);
+
+	//TODO: Int64Ty bruh
 	PHINode* PN =
 		Builder->CreatePHI(Type::getInt64Ty(*TheContext), 2, "iftmp");
 
@@ -393,8 +409,12 @@ Value* ForExprAST::codegen()
 	 * Within the loop, the variable is defined equal to the PHI node.
 	 * If it shadows an existing variable, we have to restore it, so save it now.
 	 */
-	AllocaInst* OldVal = NamedValues[VarName];
-	NamedValues[VarName] = Alloca;
+
+	//AllocaInst* OldVal = symbolTable.getVariable(VarName);
+	//symbolTable.addVariable(VarName, Alloca);
+
+	AllocaInst* OldVal = scopeManager.getVariableFromCurrentScope(VarName);
+	scopeManager.addVariableToCurrentScope(VarName, Alloca);
 
 
 	// Emit the body of the loop.  This, like any other expr, can change the
@@ -413,6 +433,7 @@ Value* ForExprAST::codegen()
 	else 
 	{
 		// If not specified, use 1
+		//TODO: 64 bit int bruh
 		StepVal = ConstantInt::get(*TheContext, APInt(64, 1));
 	}
 
@@ -450,11 +471,15 @@ Value* ForExprAST::codegen()
 
 	// Restore the unshadowed variable.
 	if (OldVal)
-		NamedValues[VarName] = OldVal;
+		//symbolTable.addVariable(VarName, OldVal);
+		scopeManager.addVariableToCurrentScope(VarName, OldVal);
 	else
-		NamedValues.erase(VarName);
+		//TODO
+		symbolTable.removeVariable(VarName);
+		//scopeManager.(VarName,
 
 	// for expr always returns 0.0.
+	//TODO: Int64Ty bruh
 	return Constant::getNullValue(Type::getInt64Ty(*TheContext));
 }
 
@@ -510,10 +535,12 @@ Value* LetExprAST::codegen()
 		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName, GetLLVMTypeFromDataType(&this->dt));
 		Builder->CreateStore(InitVal, Alloca);
 
-		OldBindings.push_back(NamedValues[VarName]);
+		//OldBindings.push_back(symbolTable.getVariable(VarName));
+		OldBindings.push_back(scopeManager.getVariableFromCurrentScope(VarName));
 
 		// Remember this binding.
-		NamedValues[VarName] = Alloca;
+		//symbolTable.addVariable(VarName, Alloca);
+		scopeManager.addVariableToCurrentScope(VarName, Alloca);
 	}
 	// Codegen the body, now that all vars are in scope.
 	if (Body == nullptr)
@@ -526,7 +553,8 @@ Value* LetExprAST::codegen()
 
 	// Pop all our variables from scope.
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
-		NamedValues[VarNames[i].first] = OldBindings[i];
+		//symbolTable.addVariable(VarNames[i].first, OldBindings[i]);
+		scopeManager.addVariableToCurrentScope(VarNames[i].first, OldBindings[i]);
 
 	// Return the body computation.
 	return BodyVal;
@@ -596,8 +624,11 @@ void InitializeModule(bool optimizations)
 	TheFPM->doInitialization();
 
 	// Create a new builder for the module.
-	Builder = std::make_unique<IRBuilder<>>(*TheContext);
 
+	scopeManager.setContext(TheContext.get());
+	Builder = scopeManager.getBuilderOfCurrentScope();
+	//Builder = std::make_unique<IRBuilder<>>(*TheContext);
+	//Builder2 = std::make_unique<IRBuilder<>>(*TheContext);
 }
 
 void InitializeJIT()

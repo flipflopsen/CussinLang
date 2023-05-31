@@ -44,6 +44,7 @@ private:
 	std::unique_ptr<ExprAST> ParseLetExpr();
 	std::unique_ptr<ExprAST> ParseStructExpr();
 	std::unique_ptr<ExprAST> ParseReturnExpr();
+	std::unique_ptr<ExprAST> ParseScopeExpr();
 	std::unique_ptr<PrototypeAST> ParseExtern();
 	std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
 	std::unique_ptr<PrototypeAST> ParsePrototype(bool is_extern);

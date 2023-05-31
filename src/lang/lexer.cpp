@@ -300,6 +300,11 @@ Token GetToken(Tokenizer& tokenizer)
 			token.contents[token.length] = '\0';
 
 			// Once we have an identifier, we can check if it matches a keyword
+			if (strcompare(token.contents, "scope"))
+			{
+				token.type = TokenType_SCOPE;
+				break;
+			}
 			if (strcompare(token.contents, "binary"))
 			{
 				token.type = TokenType_BINARY;
@@ -654,6 +659,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_DELETE:
 	case TokenType_NULL:
 	case TokenType_EXTERN:
+	case TokenType_SCOPE:
 		return "Keyword";
 	case TokenType_BINARY:
 	case TokenType_UNARY:

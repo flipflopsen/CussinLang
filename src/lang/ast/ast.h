@@ -14,6 +14,7 @@
 #include "VariableExpressionAST.h"
 #include "StructExpressionAST.h"
 #include "ReturnExpressionAST.h"
+#include "ScopeExpressionAST.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/IRBuilder.h"
@@ -33,6 +34,7 @@ public:
 	llvm::Value* visit(LetExprAST* ast) override;
 	llvm::Value* visit(StructExprAST* ast) override;
 	llvm::Value* visit(ReturnExprAST* ast) override;
+	llvm::Value* visit(ScopeExprAST* ast) override;
 
 	llvm::Function* visit(PrototypeAST* ast) override;
 	llvm::Function* visit(FunctionAST* ast) override;

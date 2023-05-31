@@ -10,12 +10,13 @@
 using namespace std;
 
 constexpr bool jit = false;
-constexpr bool optimizations = true;
+constexpr bool optimizations = false;
 
+//TODO: Migrate this to GTest
 const std::vector<std::string> inputs =
 {
-	"fn test(x: i32, y: i32) -> i32 {let z: i32 = (x + y) * 2; x = z + 3; return x; }"
-	//"fn test(x: i32, y: i32) -> i32 {x = (x + y) * 2; x = x + 3; }"
+	"fn test(x: i32, y: i32) -> i32 {let z: i32 = (x + y) * 2; x = z + 3; return x; }",
+	"fn test2(x: i32, y: i32) -> i32 {x = (x + y) * 2; x = x + 3; return x; }"
 	//"fn doubleit(x: i32, y: i32) -> i32 { (x + y) * 2 ; }"
 	//"fn binary : 1 (x y) { y; }",
 	//"fn test(x: i32) -> i32 { let y: i32 = 2 in x + y; }"
