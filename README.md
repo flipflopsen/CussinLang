@@ -28,7 +28,6 @@ fn main(x: i64, y: i64) -> i64 {
 ```
 
 In this example, the main function takes two parameters of type i64 and returns a value of type i64. It calculates the sum of x and y and assigns the result to z. Finally, the value of z is returned.
-Upcoming Features
 
 ## Upcoming Features
 CussinLang is under active development, and future updates will bring exciting new features to enhance the language further. Some of the upcoming features include:
@@ -39,11 +38,9 @@ CussinLang is under active development, and future updates will bring exciting n
 - Library: Provide a standard library with common utilities and functions.
 
 Stay tuned for updates as we continue to expand the capabilities of CussinLang.
-Contribution
 
 ## Contribution
 CussinLang is an open-source project, and contributions are welcome. If you have ideas for improvements, bug fixes, or new features, please feel free to submit a pull request or open an issue on the project's GitHub repository.
-License
 
 ## Acknowledgements
 CussinLang builds upon the power of LLVM and the collective knowledge of the programming language community. We would like to express our gratitude to the LLVM project and its contributors for their remarkable work.
