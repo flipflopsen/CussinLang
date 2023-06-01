@@ -33,10 +33,10 @@ Upcoming Features
 ## Upcoming Features
 CussinLang is under active development, and future updates will bring exciting new features to enhance the language further. Some of the upcoming features include:
 
-    Structs: Define custom data structures with associated properties and methods.
-    Enums: Create user-defined enumeration types to represent a set of named values.
-    Threads: Support concurrent execution through threading capabilities.
-    Library: Provide a standard library with common utilities and functions.
+- Structs: Define custom data structures with associated properties and methods.
+- Enums: Create user-defined enumeration types to represent a set of named values.
+- Threads: Support concurrent execution through threading capabilities.
+- Library: Provide a standard library with common utilities and functions.
 
 Stay tuned for updates as we continue to expand the capabilities of CussinLang.
 Contribution
