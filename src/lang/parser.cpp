@@ -86,7 +86,7 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
 		return ParseExpression();
-	case TokenType_SCOPE:
+	case TokenType_SCOPE || TokenType_PERSISTENT:
 		printf("[PARSER] Parsing Scope Expression\n");
 		return ParseScopeExpr();
 	case TokenType_IDENTIFIER:
@@ -666,24 +666,21 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 
 std::unique_ptr<ExprAST> Parser::ParseScopeExpr()
 {
+	bool persistent = false;
+	if (CurTok == TokenType_PERSISTENT)
+	{
+		persistent = true;
+		getNextToken();
+	}
 	if (CurTok != TokenType_SCOPE)
 	{
-		LogError("Expected 'scope' keyword");
-		return nullptr;
+		LogError("Expected 'scope' keyword, falling back to global scope");
+		return std::make_unique<ScopeExprAST>("GLOBAL", true, ParseBlock());
 	}
 
 	getNextToken(); // eat 'scope'
-	if (CurTok != TokenType_LBRACE)
-	{
-		LogError("Expected '{' at beginning of block");
-		return nullptr;
-	}
-
-	getNextToken(); // eat {
-
-
-
-	return nullptr;
+	std::string scopeIdentifier = PeekCurrentToken().contents;
+	return std::make_unique<ScopeExprAST>(scopeIdentifier, persistent, ParseBlock());
 }
 
 

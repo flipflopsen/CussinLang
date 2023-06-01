@@ -579,6 +579,15 @@ Value* ReturnExprAST::codegen()
 	return Result;
 }
 
+Value* ScopeExprAST::codegen()
+{
+	CodegenVisitor visitor;
+
+
+
+	return nullptr;
+}
+
 // CreateEntryBlockAlloca - Create an alloca instr in the entry block of the function
 // Used for mut. vars etc.
 AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, const std::string &VarName, Type* type)

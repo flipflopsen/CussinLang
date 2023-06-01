@@ -8,11 +8,12 @@ class ScopeExprAST : public ExprAST
 {
 private:
 	std::string Name;
-	bool isPersistent;
+	bool IsPersistent;
+	std::vector<std::unique_ptr<ExprAST>> Body;
 
 public:
-	ScopeExprAST(const std::string& Name, bool IsPersistent)
-		: ReturnValue(std::move(ReturnValue)) {}
+	ScopeExprAST(const std::string& Name, bool IsPersistent, std::vector<std::unique_ptr<ExprAST>> Body)
+		: Name(Name), IsPersistent(IsPersistent), Body(std::move(Body)) {}
 
 	Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);
