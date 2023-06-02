@@ -300,6 +300,11 @@ Token GetToken(Tokenizer& tokenizer)
 			token.contents[token.length] = '\0';
 
 			// Once we have an identifier, we can check if it matches a keyword
+			if (strcompare(token.contents, "persistent"))
+			{
+				token.type = TokenType_PERSISTENT;
+				break;
+			}
 			if (strcompare(token.contents, "scope"))
 			{
 				token.type = TokenType_SCOPE;
@@ -660,6 +665,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_NULL:
 	case TokenType_EXTERN:
 	case TokenType_SCOPE:
+	case TokenType_PERSISTENT:
 		return "Keyword";
 	case TokenType_BINARY:
 	case TokenType_UNARY:

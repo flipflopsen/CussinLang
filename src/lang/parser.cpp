@@ -57,6 +57,10 @@ void Parser::Parse(bool jit)
 			case TokenType_EXTERN:
 				HandleExtern();
 				break;
+			case TokenType_PERSISTENT:
+			case TokenType_SCOPE:
+				HandleScopeExpression();
+				break;
 			default:
 				HandleTopLevelExpression();
 				break;
@@ -82,11 +86,15 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 		return ParseCallExpr();
 	
 	switch (CurTok) {
+	case TokenType_FN:
+		printf("[PARSER] Parsing FnDef in Scope!\n");
+		return ParseFnDef();
 	case TokenType_SEMICOLON:
 		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
 		return ParseExpression();
-	case TokenType_SCOPE || TokenType_PERSISTENT:
+	case TokenType_PERSISTENT:
+	case TokenType_SCOPE:
 		printf("[PARSER] Parsing Scope Expression\n");
 		return ParseScopeExpr();
 	case TokenType_IDENTIFIER:
@@ -271,7 +279,7 @@ std::unique_ptr<ExprAST> Parser::ParseParenExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
 {
-	if (CurTok == TokenType_RBRACE)
+	if (CurTok == TokenType_RBRACE || CurTok == TokenType_SEMICOLON || PeekNextToken().type == TokenType_FN)
 		return LHS;
 
 	if (ExprPrec < 1)
@@ -417,7 +425,7 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames), ReturnType, Kind != 0, BinaryPrecedence);
 }
 
-std::unique_ptr<FunctionAST> Parser::ParseFnDef()
+std::unique_ptr<ExprAST> Parser::ParseFnDef()
 {
 	getNextToken(); // eat next token
 	auto Proto = ParsePrototype(false);
@@ -440,7 +448,7 @@ std::unique_ptr<FunctionAST> Parser::ParseFnDef()
 	return std::make_unique<FunctionAST>(std::move(Proto), std::move(Body));
 }
 
-std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
+std::unique_ptr<ExprAST> Parser::ParseTopLevelExpr()
 {
 	printf("[PARSER-TLE] Starting to parse TLE!\n");
 	std::vector<std::unique_ptr<ExprAST>> body;
@@ -664,9 +672,11 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 	return statements;
 }
 
-std::unique_ptr<ExprAST> Parser::ParseScopeExpr()
+
+std::unique_ptr<ScopeExprAST> Parser::ParseScopeExpr()
 {
 	bool persistent = false;
+	Token lookahead;
 	if (CurTok == TokenType_PERSISTENT)
 	{
 		persistent = true;
@@ -680,8 +690,15 @@ std::unique_ptr<ExprAST> Parser::ParseScopeExpr()
 
 	getNextToken(); // eat 'scope'
 	std::string scopeIdentifier = PeekCurrentToken().contents;
-	return std::make_unique<ScopeExprAST>(scopeIdentifier, persistent, ParseBlock());
+	getNextToken(); // eat identifier
+	auto body = ParseBlock();
+	if (CurTok != TokenType_RBRACE)
+		getNextToken();
+	if (CurTok != TokenType_RBRACE)
+		LogError("Expected '}' at the end of a scope!");
+	return std::make_unique<ScopeExprAST>(scopeIdentifier, persistent, std::move(body));
 }
+
 
 
 // Handlers
@@ -693,10 +710,20 @@ void Parser::HandleDefinition()
 
 	printf("[PARSER-Init] Parsing Definition\n");
 
-	if (auto FnAST = ParseFnDef()) {
+	std::unique_ptr<ExprAST> expr = ParseFnDef();
+	std::unique_ptr<FunctionAST> function = nullptr;
+	std::unique_ptr<PrototypeAST> proto = nullptr;
+
+
+	if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(expr.get()))
+	{
+		function.reset(static_cast<FunctionAST*>(funcAST));
+		expr.release();
+	}
+	if (function) {
 		fprintf(stderr, "[PARSER-DONE] Got FnAST\n");
-		if (auto* FnIR = FnAST->accept(&visitor)) {
-			fprintf(stderr, "[PARSER-CG-DONE] Read function definition: \n");
+		if (auto* FnIR = function->accept(&visitor)) {
+			fprintf(stderr, "[PARSER-CG-DONE] Read FN expression: \n");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
 		}
@@ -714,14 +741,39 @@ void Parser::HandleTopLevelExpression()
 
 	printf("[PARSER-Init] Parsing TLE.\n");
 
-	if (auto FnAST = ParseTopLevelExpr()) {
-		fprintf(stderr, "[PARSER-DONE] Got TLE-AST\n");
-		if (auto* FnIR = FnAST->accept(&visitor)) {
-			fprintf(stderr, "[PARSER-CG-DONE] Read top-level expression: \n");
+	std::unique_ptr<ExprAST> expr = ParseTopLevelExpr();
+	std::unique_ptr<FunctionAST> function = nullptr;
+	std::unique_ptr<PrototypeAST> proto = nullptr;
+
+
+	if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(expr.get()))
+	{
+		function.reset(static_cast<FunctionAST*>(funcAST));
+		expr.release();
+	}
+	else if (PrototypeAST* protoAST = dynamic_cast<PrototypeAST*>(expr.get()))
+	{
+		proto.reset(static_cast<PrototypeAST*>(protoAST));
+		expr.release();
+	}
+
+	if (function) 
+	{
+		fprintf(stderr, "[PARSER-DONE] Got TLE-FN-AST\n");
+		if (auto* FnIR = function->accept(&visitor)) {
+			fprintf(stderr, "[PARSER-CG-DONE] Read TLE FN expression: \n");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
-
-			// Remove the anonymous expression.
+			FnIR->eraseFromParent();
+		}
+	}
+	else if (proto) 
+	{
+		fprintf(stderr, "[PARSER-DONE] Got TLE_PROTO-AST\n");
+		if (auto* FnIR = proto->accept(&visitor)) {
+			fprintf(stderr, "[PARSER-CG-DONE] Read TLE  expression: \n");
+			FnIR->print(errs());
+			fprintf(stderr, "\n");
 			FnIR->eraseFromParent();
 		}
 	}
@@ -731,9 +783,12 @@ void Parser::HandleTopLevelExpression()
 	}
 }
 
-void Parser::HandleExtern() {
+void Parser::HandleExtern()
+{
+	CodegenVisitor visitor;
+
 	if (auto ProtoAST = ParseExtern()) {
-		if (auto* FnIR = ProtoAST->codegen()) {
+		if (auto* FnIR = ProtoAST->accept(&visitor)) {
 			fprintf(stderr, "Read extern: ");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
@@ -745,6 +800,17 @@ void Parser::HandleExtern() {
 	}
 }
 
+void Parser::HandleScopeExpression()
+{
+	CodegenVisitor visitor;
+	std::unique_ptr<ScopeExprAST> ScopeAST = ParseScopeExpr();
+	if (ScopeAST) {
+		auto* FnIR = ScopeAST->accept(&visitor);
+		fprintf(stderr, "Parsed Scope Expression\n");
+		
+	}
+
+}
 
 void Parser::HandleExternJIT()
 {

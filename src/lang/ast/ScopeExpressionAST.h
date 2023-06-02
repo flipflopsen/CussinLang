@@ -4,22 +4,22 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
-class ScopeExprAST : public ExprAST
-{
+class ScopeExprAST : public ExprAST {
 private:
-	std::string Name;
-	bool IsPersistent;
-	std::vector<std::unique_ptr<ExprAST>> Body;
+    std::string Name;
+    bool IsPersistent;
+    std::vector<std::unique_ptr<ExprAST>> Body;
 
 public:
-	ScopeExprAST(const std::string& Name, bool IsPersistent, std::vector<std::unique_ptr<ExprAST>> Body)
-		: Name(Name), IsPersistent(IsPersistent), Body(std::move(Body)) {}
+    ScopeExprAST(const std::string& Name, bool IsPersistent, std::vector<std::unique_ptr<ExprAST>> Body)
+        : Name(Name), IsPersistent(IsPersistent), Body(std::move(Body)) {}
 
-	Value* accept(Visitor* visitor) override {
-		return visitor->visit(this);
-	}
+    Value* accept(Visitor* visitor) override {
+        visitor->visit(this);
+        return nullptr;
+    }
 
-	Value* codegen();
+    Value* codegen();
 };
 
 #endif

@@ -105,9 +105,9 @@ Value* CodegenVisitor::visit(ScopeExprAST* ast)
 {
 	//printf("[CODEGEN] CodegenVisitor is visiting StructExprAST\n");
 
-	auto ret = ast->codegen();
+	ast->codegen();
 	//TheModule->print(errs(), nullptr);
-	return ret;
+	return nullptr;
 }
 
 #endif

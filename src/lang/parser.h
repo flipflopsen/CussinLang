@@ -44,12 +44,12 @@ private:
 	std::unique_ptr<ExprAST> ParseLetExpr();
 	std::unique_ptr<ExprAST> ParseStructExpr();
 	std::unique_ptr<ExprAST> ParseReturnExpr();
-	std::unique_ptr<ExprAST> ParseScopeExpr();
+	std::unique_ptr<ScopeExprAST> ParseScopeExpr();
 	std::unique_ptr<PrototypeAST> ParseExtern();
 	std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
 	std::unique_ptr<PrototypeAST> ParsePrototype(bool is_extern);
-	std::unique_ptr<FunctionAST> ParseFnDef();
-	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
+	std::unique_ptr<ExprAST> ParseFnDef();
+	std::unique_ptr<ExprAST> ParseTopLevelExpr();
 	std::unique_ptr<ExprAST> ParseUnary();
 	std::vector<std::unique_ptr<ExprAST>> ParseBlock();
 
@@ -57,6 +57,7 @@ private:
 	void HandleExtern();
 	void HandleDefinition();
 	void HandleTopLevelExpression();
+	void HandleScopeExpression();
 
 	// JIT Handlers
 	void HandleExternJIT();

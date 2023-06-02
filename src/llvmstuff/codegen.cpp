@@ -54,29 +54,18 @@ static std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 static ExecutionEngine* engine;
 std::unique_ptr<Module> TheModule;
 IRBuilder<>* Builder;
-SymbolTable symbolTable;
 ScopeManager& scopeManager = ScopeManager::getInstance();
 
 
 Function* getFunction(std::string Name) {
 	CodegenVisitor visitor;
-	// First, see if the function has already been added to the current module.
+
 	if (auto* F = TheModule->getFunction(Name))
 		return F;
 
-	// If not, check whether we can codegen the declaration from some existing
-	// prototype.
-
-	//PrototypeAST* proto = symbolTable.getFunction(Name);
 	PrototypeAST* proto = scopeManager.getFunctionFromCurrentScope(Name);
 	if (proto)
 		return proto->accept(&visitor);
-
-	/*
-	auto FI = FunctionProtos.find(Name);
-	if (FI != FunctionProtos.end())
-		return FI->second->accept(&visitor);
-	*/
 
 	// If no existing prototype exists, return null.
 	return nullptr;
@@ -279,12 +268,14 @@ Function *FunctionAST::codegen()
 			if (RetVal == nullptr)
 			{
 				TheFunction->eraseFromParent();
+				scopeManager.removeFunctionFromScope(true, P.getName());
 				return nullptr;
 			}
 		}
 		else
 		{
 			TheFunction->eraseFromParent();
+			scopeManager.removeFunctionFromScope(true, P.getName());
 			return nullptr;
 		}
 	}
@@ -301,6 +292,10 @@ Function *FunctionAST::codegen()
 			{
 				printf("[CODEGEN-VERIFIED] Function is ok!\n");
 				TheFPM->run(*TheFunction);
+			}
+			else
+			{
+				LogError("Failed to verify function!");
 			}
 		}
 		else
@@ -475,8 +470,8 @@ Value* ForExprAST::codegen()
 		scopeManager.addVariableToCurrentScope(VarName, OldVal);
 	else
 		//TODO
-		symbolTable.removeVariable(VarName);
-		//scopeManager.(VarName,
+		//symbolTable.removeVariable(VarName);
+		scopeManager.removeVariableFromCurrentScope(VarName);
 
 	// for expr always returns 0.0.
 	//TODO: Int64Ty bruh
@@ -583,9 +578,86 @@ Value* ScopeExprAST::codegen()
 {
 	CodegenVisitor visitor;
 
+	if (scopeManager.isScopeExisting(Name) || IsPersistent)
+	{
+		scopeManager.createPersistentScope(Name);
+		scopeManager.enterPersistentScope(Name);
+	}
+	else
+	{
+		scopeManager.enterTempScope();
+	}
 
+	// Get the builder of the scope
+	Builder = scopeManager.getBuilderOfCurrentScope();
+
+	std::unique_ptr<FunctionAST> function = nullptr;
+	std::unique_ptr<PrototypeAST> proto = nullptr;
+
+	// Generate the code for each expression in the body
+	for (auto& Expr : Body)
+	{
+
+		if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(Expr.get()))
+		{
+			function.reset(static_cast<FunctionAST*>(funcAST));
+			Expr.release();
+			if (Function* RetFunc = funcAST->accept(&visitor))
+			{
+				if (RetFunc == nullptr)
+				{
+					printf("[CODEGEN-SCOPE] Error while trying to generate Function Code for scope!\n");
+				}
+				else
+				{
+					RetFunc->print(errs());
+				}
+			}
+		}
+		else if (PrototypeAST* protoAST = dynamic_cast<PrototypeAST*>(Expr.get()))
+		{
+			proto.reset(static_cast<PrototypeAST*>(protoAST));
+			Expr.release();
+			if (Function* RetFunc = protoAST->accept(&visitor))
+			{
+				if (RetFunc == nullptr)
+				{
+					printf("[CODEGEN-SCOPE] Error while trying to generate Prototype Code for scope!\n");
+				}
+				else
+				{
+					RetFunc->print(errs());
+				}
+			}
+		}
+		else
+		{
+			if (Value* RetVal = Expr->accept(&visitor))
+			{
+				// Check if any error occurred during code generation
+				if (RetVal == nullptr)
+				{
+					printf("[CODEGEN-SCOPE] Error while trying to generate Expression Code for scope!\n");
+				}
+			}
+		}
+	}
+
+	// Restore previous scope
+	if (scopeManager.isScopeExisting(Name) || IsPersistent)
+	{
+		scopeManager.exitPersistentScope();
+	}
+	else
+	{
+		scopeManager.exitTempScope();
+	}
+
+	// Restore Builder
+	Builder = scopeManager.getBuilderOfCurrentScope();
 
 	return nullptr;
+	
 }
 
 // CreateEntryBlockAlloca - Create an alloca instr in the entry block of the function

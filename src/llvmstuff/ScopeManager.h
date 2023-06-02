@@ -59,7 +59,7 @@ public:
     {
 	    if (persistentScopeMap.count(name) > 0)
 	    {
-            fprintf(stderr, "[SCOPE-MANAGER-ERR] Persistent scope with name: %s already exists!\n", name);
+            fprintf(stderr, "[SCOPE-MANAGER-ERR] Persistent scope with name: %s already exists!\n", name.c_str());
             return;
 	    }
 
@@ -69,26 +69,29 @@ public:
             return;
         }
 
-        fprintf(stderr, "[SCOPE-MANAGER] Creating persistent scope with name: %s\n", name);
+        fprintf(stderr, "[SCOPE-MANAGER] Creating persistent scope with name: %s\n", name.c_str());
         auto Builder = std::make_unique<IRBuilder<>>(*TheContext);
         persistentScopeMap[name] = SymbolTable(std::move(Builder));
-        scopeLevels[depth] = name;
+        scopeLevels.push_back(name);
         depth = scopeLevels.size();
     }
 
     void enterPersistentScope(const std::string& name)
     {
+        fprintf(stderr, "[SCOPE-MANAGER] Entering persistent scope: %s\n", name.c_str());
         superScope = CurrentScope;
         CurrentScope = &persistentScopeMap[name];
     }
 
     void exitPersistentScope()
     {
+        fprintf(stderr, "[SCOPE-MANAGER] Exiting persistent scope\n");
         CurrentScope = superScope;
     }
 
     void enterGlobalScope()
     {
+        fprintf(stderr, "[SCOPE-MANAGER] Entering global scope\n");
         CurrentScope = &persistentScopeMap["GLOBAL"];
         superScope = CurrentScope;
     }
@@ -107,6 +110,7 @@ public:
 
     void exitTempScope()
 	{
+        fprintf(stderr, "[SCOPE-MANAGER] Exiting temp scope\n");
         if (!tmpScopeStack.empty()) {
             tmpScopeStack.pop_back();
             return;
@@ -157,6 +161,11 @@ public:
         return getVariableFromScope(true, name);
     }
 
+    void removeVariableFromCurrentScope(const std::string& name)
+    {
+        removeVariableFromScope(true, name);
+    }
+
     void addFunctionToCurrentScope(const std::string& name, std::unique_ptr<PrototypeAST> function)
     {
         addFunctionToScope(true, name, std::move(function));
@@ -202,6 +211,22 @@ public:
 			persistentScopeMap[scope].addStruct(structName, structType);
     }
 
+    void removeVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    {
+        if (currentScope)
+            (*CurrentScope).removeVariable(name);
+        else
+            persistentScopeMap[scope].removeVariable(name);
+    }
+    void removeFunctionFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    {
+
+    }
+    void removeStructFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    {
+
+    }
+
     AllocaInst* getVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
     {
         if (currentScope)
@@ -227,6 +252,13 @@ public:
     IRBuilder<>* getBuilderOfCurrentScope()
     {
         return (*CurrentScope).getBuilder();
+    }
+
+    bool isScopeExisting(const std::string& name)
+    {
+        if (persistentScopeMap.count(name) > 0)
+            return true;
+        return false;
     }
 };
 

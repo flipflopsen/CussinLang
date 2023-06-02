@@ -4,7 +4,7 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
-class FunctionAST
+class FunctionAST : public ExprAST
 {
 	std::unique_ptr<PrototypeAST> Proto;
 	std::vector<std::unique_ptr<ExprAST>> Body;
@@ -16,6 +16,7 @@ public:
 
 	Function* accept(Visitor* visitor) {
 		return visitor->visit(this);
+		//return visitor->visit(this);
 	}
 
 	Function* codegen();
