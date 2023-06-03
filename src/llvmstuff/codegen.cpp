@@ -31,6 +31,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/TargetParser/Host.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
+#include <llvm/Linker/Linker.h>
 
 using namespace llvm;
 using namespace llvm::sys;
@@ -53,6 +54,7 @@ static std::unique_ptr<LLVMContext> TheContext;
 static std::unique_ptr<legacy::FunctionPassManager> TheFPM;
 static ExecutionEngine* engine;
 std::unique_ptr<Module> TheModule;
+Module* ModuleVar;
 IRBuilder<>* Builder;
 ScopeManager& scopeManager = ScopeManager::getInstance();
 
@@ -60,7 +62,7 @@ ScopeManager& scopeManager = ScopeManager::getInstance();
 Function* getFunction(std::string Name) {
 	CodegenVisitor visitor;
 
-	if (auto* F = TheModule->getFunction(Name))
+	if (auto* F = ModuleVar->getFunction(Name))
 		return F;
 
 	PrototypeAST* proto = scopeManager.getFunctionFromCurrentScope(Name);
@@ -197,7 +199,7 @@ Function *PrototypeAST::codegen()
 	FunctionType* functionType = FunctionType::get(returnType, paramTypes, false);
 
 	// Create the function
-	Function* function = Function::Create(functionType, Function::ExternalLinkage, Name, TheModule.get());
+	Function* function = Function::Create(functionType, Function::ExternalLinkage, Name, *ModuleVar);
 
 	// Set names for the function parameters
 	llvm::Function::arg_iterator argIterator = function->arg_begin();
@@ -206,7 +208,7 @@ Function *PrototypeAST::codegen()
 		++argIterator;
 	}
 
-	TheModule->print(errs(), nullptr);
+	ModuleVar->print(errs(), nullptr);
 
 	return function;
 }
@@ -590,6 +592,7 @@ Value* ScopeExprAST::codegen()
 
 	// Get the builder of the scope
 	Builder = scopeManager.getBuilderOfCurrentScope();
+	ModuleVar = scopeManager.getModuleOfCurrentScope();
 
 	std::unique_ptr<FunctionAST> function = nullptr;
 	std::unique_ptr<PrototypeAST> proto = nullptr;
@@ -655,6 +658,7 @@ Value* ScopeExprAST::codegen()
 
 	// Restore Builder
 	Builder = scopeManager.getBuilderOfCurrentScope();
+	ModuleVar = scopeManager.getModuleOfCurrentScope();
 
 	return nullptr;
 	
@@ -708,6 +712,7 @@ void InitializeModule(bool optimizations)
 
 	scopeManager.setContext(TheContext.get());
 	Builder = scopeManager.getBuilderOfCurrentScope();
+	ModuleVar = scopeManager.getModuleOfCurrentScope();
 	//Builder = std::make_unique<IRBuilder<>>(*TheContext);
 	//Builder2 = std::make_unique<IRBuilder<>>(*TheContext);
 }
@@ -729,6 +734,22 @@ void InitializeJIT()
 		.setEngineKind(llvm::EngineKind::JIT);
 
 	engine = engineBuilder.create();
+}
+
+int MergeModulesAndPrint()
+{
+	
+	llvm::Linker linker(*TheModule);
+
+	for (auto& module : scopeManager.getAllModules()) {
+		if (linker.linkInModule(std::move(module))) {
+			errs() << "Error linking module.\n";
+			return 1;
+		}
+	}
+	TheModule->print(errs(), nullptr);
+
+	return 1;
 }
 
 int ObjectCodeGen()

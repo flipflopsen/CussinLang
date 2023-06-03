@@ -14,9 +14,9 @@ private:
     LLVMContext* TheContext;
     std::vector<SymbolTable> tmpScopeStack;
     std::map<std::string, SymbolTable> persistentScopeMap;
-    std::map<std::string, IRBuilder<>> builders;
     // 0 = GlobalScope, n > 0 others
     std::vector<std::string> scopeLevels; // Stack of string to refer to different scopes and builders
+    std::vector<std::unique_ptr<Module>> modules;
     int depth = 0;
     SymbolTable* CurrentScope;
     SymbolTable* superScope;
@@ -49,7 +49,8 @@ public:
 	{
         TheContext = context;
         auto Builder = std::make_unique<IRBuilder<>>(*TheContext);
-        persistentScopeMap["GLOBAL"] = SymbolTable(std::move(Builder));
+        auto TheModule = std::make_unique<Module>("cussinJIT-GLOBAL", *TheContext);
+        persistentScopeMap["GLOBAL"] = SymbolTable(std::move(Builder), std::move(TheModule));
         CurrentScope = &persistentScopeMap["GLOBAL"];
         superScope = CurrentScope;
 	}
@@ -71,7 +72,8 @@ public:
 
         fprintf(stderr, "[SCOPE-MANAGER] Creating persistent scope with name: %s\n", name.c_str());
         auto Builder = std::make_unique<IRBuilder<>>(*TheContext);
-        persistentScopeMap[name] = SymbolTable(std::move(Builder));
+        auto TheModule = std::make_unique<Module>("cussinJIT-" + name, *TheContext);
+    	persistentScopeMap[name] = SymbolTable(std::move(Builder), std::move(TheModule));
         scopeLevels.push_back(name);
         depth = scopeLevels.size();
     }
@@ -99,12 +101,14 @@ public:
     void enterTempScope()
 	{
         fprintf(stderr, "[SCOPE-MANAGER] Entering temporary scope depth: %d\n", tmpScopeStack.size());
-        auto Builder = std::make_unique<IRBuilder<>>(*TheContext);
-    	tmpScopeStack.push_back(SymbolTable(std::move(Builder)));
+        auto identifier = "tmpscope-" + std::to_string(depth);
+    	auto Builder = std::make_unique<IRBuilder<>>(*TheContext);
+        auto TheModule = std::make_unique<Module>("cussinJIT-" + identifier, *TheContext);
+    	tmpScopeStack.push_back(SymbolTable(std::move(Builder), std::move(TheModule)));
         superScope = CurrentScope;
         CurrentScope = &tmpScopeStack.back();
 
-        scopeLevels.push_back("tmpscope" + std::to_string(depth));
+        scopeLevels.push_back(identifier);
         depth = scopeLevels.size();
     }
 
@@ -113,11 +117,10 @@ public:
         fprintf(stderr, "[SCOPE-MANAGER] Exiting temp scope\n");
         if (!tmpScopeStack.empty()) {
             tmpScopeStack.pop_back();
-            return;
+            scopeLevels.pop_back();
+            depth = scopeLevels.size();
+            CurrentScope = superScope;
         }
-        scopeLevels.pop_back();
-        depth = scopeLevels.size();
-        CurrentScope = superScope;
     }
 
     void addVariableToPersistentScope(const std::string& name, AllocaInst* value, const std::string& scope = "GLOBAL")
@@ -186,7 +189,7 @@ public:
         return getStructFromScope(true, name);
     }
 
-    void addVariableToScope(bool currentScope, const std::string& name, AllocaInst* value, const std::string& scope = "tmp")
+    void addVariableToScope(bool currentScope, const std::string& name, AllocaInst* value, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             (*CurrentScope).addVariable(name, value);
@@ -195,7 +198,7 @@ public:
         
     }
 
-    void addFunctionToScope(bool currentScope, const std::string& name, std::unique_ptr<PrototypeAST> function, const std::string& scope = "tmp")
+    void addFunctionToScope(bool currentScope, const std::string& name, std::unique_ptr<PrototypeAST> function, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             (*CurrentScope).addFunction(name, std::move(function));
@@ -203,7 +206,7 @@ public:
             persistentScopeMap[scope].addFunction(name, std::move(function));
     }
 
-    void addStructToScope(bool currentScope, const std::string& structName, llvm::StructType* structType, const std::string& scope = "tmp")
+    void addStructToScope(bool currentScope, const std::string& structName, llvm::StructType* structType, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             (*CurrentScope).addStruct(structName, structType);
@@ -211,23 +214,23 @@ public:
 			persistentScopeMap[scope].addStruct(structName, structType);
     }
 
-    void removeVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    void removeVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             (*CurrentScope).removeVariable(name);
         else
             persistentScopeMap[scope].removeVariable(name);
     }
-    void removeFunctionFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    void removeFunctionFromScope(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL")
     {
 
     }
-    void removeStructFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    void removeStructFromScope(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL")
     {
 
     }
 
-    AllocaInst* getVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    AllocaInst* getVariableFromScope(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             return (*CurrentScope).getVariable(name);
@@ -235,14 +238,14 @@ public:
 
     }
 
-    PrototypeAST* getFunctionFromScope(bool currentScope, const std::string& name, const std::string& scope = "tmp")
+    PrototypeAST* getFunctionFromScope(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             return (*CurrentScope).getFunction(name);
         return persistentScopeMap[scope].getFunction(name);
     }
 
-    StructType* getStructFromScope(bool currentScope, const std::string& structName, const std::string& scope = "tmp")
+    StructType* getStructFromScope(bool currentScope, const std::string& structName, const std::string& scope = "GLOBAL")
     {
         if (currentScope)
             return (*CurrentScope).getStruct(structName);
@@ -252,6 +255,25 @@ public:
     IRBuilder<>* getBuilderOfCurrentScope()
     {
         return (*CurrentScope).getBuilder();
+    }
+    Module* getModuleOfCurrentScope()
+    {
+        return (*CurrentScope).getModule();
+        //return nullptr;
+    }
+    std::vector<std::unique_ptr<Module>> getAllModules()
+    {
+        std::vector<std::unique_ptr<Module>> allModules;
+
+        for (auto& entry : persistentScopeMap) {
+            SymbolTable& symbolTable = entry.second;
+            Module* module = symbolTable.getModule();
+
+            if (module != nullptr) {
+                allModules.push_back(std::move(std::unique_ptr<Module>(module)));
+            }
+        }
+        return allModules;
     }
 
     bool isScopeExisting(const std::string& name)

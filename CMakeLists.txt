@@ -70,7 +70,7 @@ set(SOURCES
 		"src/llvmstuff/SymbolTable.h" 
 		"src/lang/ast/ScopeExpressionAST.h"  
 		"src/llvmstuff/ScopeManager.h"
-)
+ )
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
@@ -90,6 +90,8 @@ llvm_map_components_to_libnames(LLVM_LIBS
   native
   mcjit
 )
+
+add_compile_options(/FR)
 
 foreach(target ${LLVM_TARGETS_TO_BUILD})
   list(APPEND targets "LLVM${target}CodeGen")

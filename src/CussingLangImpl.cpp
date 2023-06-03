@@ -15,7 +15,10 @@ constexpr bool optimizations = false;
 //TODO: Migrate this to GTest
 const std::vector<std::string> inputs =
 {
-	"let x:i32 = 3; fn test(y: i32) -> i32 { let z: i32 = 2; return y + z; }"
+	"persistent scope testo { fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2;x = z + 3;return x;} }",
+	"persistent scope testo { fn main() -> i32 { return test(1,2); } }",
+	"fn main() -> i32 { return test(1,2); }"
+	//"let x:i32 = 3; fn test(y: i32) -> i32 { let z: i32 = 2; return y + z; }"
 	//"persistent scope testo { fn test(x: i32, y: i32) -> i32 {let z: i32 = (x + y) * 2; x = z + 3; return x; }};",
 	//"scope testo {test(1,2); };",
 	//"test(1,2); "
@@ -49,7 +52,7 @@ void MainLoop()
 	while (true)
 	{
 		fprintf(stderr, "ready> ");
-		char input[4096];
+		char input[8192];
 
 		if (ctr < inputs.size())
 			strcpy(input, inputs[ctr].c_str());
@@ -73,6 +76,11 @@ void MainLoop()
 		ctr++;
 		//DeleteTokens(token_array);
 	}
+
+	MergeModulesAndPrint();
+	printf("Printed!\n");
+	ObjectCodeGen();
+	printf("Code generated!\n");
 }
 
 

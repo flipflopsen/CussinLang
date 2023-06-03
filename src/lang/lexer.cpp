@@ -287,7 +287,7 @@ Token GetToken(Tokenizer& tokenizer)
 				tokenizer.location++;
 				token.length++;
 				//TODO: should we limit ourselves?
-				if (token.length == 2049) break;
+				if (token.length == 8193) break;
 			}
 			token.contents = new char[token.length + 1];
 			int iterator = 0;

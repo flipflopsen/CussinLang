@@ -9,6 +9,7 @@ void InitializeModule(bool optimizations);
 void InitializeJIT();
 int ObjectCodeGen();
 void InitializeTargets();
+int MergeModulesAndPrint();
 Value* GetValueFromDataType(DataType* dt, double Val = 0);
 Type* GetLLVMTypeFromDataType(DataType* dt);
 

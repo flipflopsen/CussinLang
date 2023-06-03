@@ -19,6 +19,7 @@ struct StructInfo {
 class SymbolTable {
 private:
     std::unique_ptr<IRBuilder<>> Builder;
+    std::unique_ptr<Module> Module;
     std::map<std::string, AllocaInst*> variableTable;
     std::map<std::string, std::unique_ptr<PrototypeAST>> functionTable;
     std::unordered_map<std::string, StructInfo> structTable;
@@ -31,8 +32,8 @@ public:
         }
     }
 
-    SymbolTable(std::unique_ptr<IRBuilder<>> Builder)
-	    :Builder(std::move(Builder))
+    SymbolTable(std::unique_ptr<IRBuilder<>> Builder, std::unique_ptr<llvm::Module> Module)
+	    :Builder(std::move(Builder)), Module(std::move(Module))
     {
         for (auto& entry : functionTable) {
             entry.second = std::move(entry.second);
@@ -110,6 +111,12 @@ public:
     IRBuilder<>* getBuilder()
     {
         return Builder.get();
+    }
+
+    llvm::Module* getModule()
+    {
+        return Module.get();
+        //return nullptr;
     }
 };
 
