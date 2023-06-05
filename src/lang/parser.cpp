@@ -80,6 +80,9 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
 		return ParseExpression();
+	case TokenType_STRUCT:
+		printf("[PARSER] Parsing Struct Expr!\n");
+		return ParseStructExpr();
 	case TokenType_PERSISTENT:
 	case TokenType_SCOPE:
 		printf("[PARSER] Parsing Scope Expression\n");
@@ -615,8 +618,35 @@ std::unique_ptr<ExprAST> Parser::ParseLetExpr()
 
 std::unique_ptr<ExprAST> Parser::ParseStructExpr()
 {
+	if (CurTok != TokenType_STRUCT)
+		LogError("Expected struct keyword");
 
-	return nullptr;
+	getNextToken();
+	auto name = PeekCurrentToken().contents;
+
+	getNextToken();
+	if (CurTok != TokenType_LBRACE)
+		LogError("Expected lbrace after struct ident");
+
+	std::vector<std::pair<std::string, DataType>> Fields;
+
+	while (CurTok != TokenType_RBRACE)
+	{
+		getNextToken();
+		auto fieldName = PeekCurrentToken().contents;
+		getNextToken();
+		getNextToken();
+		auto fieldType = EvaluateDataTypeOfToken(0);
+		Fields.push_back(std::pair<std::string, DataType>(fieldName, fieldType));
+		if (PeekNextToken().type == TokenType_COMMA)
+			getNextToken();
+		if (PeekNextToken().type == TokenType_RBRACE)
+			break;
+	}
+	printf("[PARSER-STRUCT] returning struct with %d fields\n", Fields.size());
+	getNextToken(); // eat }
+	getNextToken(); // prepare next token
+	return std::make_unique<StructExprAST>(std::move(name), std::move(Fields));
 }
 
 std::unique_ptr<ExprAST> Parser::ParseReturnExpr()

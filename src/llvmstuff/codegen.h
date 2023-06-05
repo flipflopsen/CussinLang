@@ -35,7 +35,7 @@ extern int ObjectCodeGen();
 extern void InitializeTargets();
 extern int MergeModulesAndPrint();
 
-extern llvm::Value* GetValueFromDataType(DataType* dt, double Val = 0);
+extern llvm::Value* GetNumValueFromDataType(DataType* dt, double Val = 0);
 extern llvm::Type* GetLLVMTypeFromDataType(DataType* dt);
 extern llvm::Function* getFunction(std::string Name);
 extern llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Function* TheFunction, const std::string& VarName, llvm::Type* type);

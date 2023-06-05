@@ -5,5 +5,5 @@
 Value* NumberExprAST::codegen()
 {
 	printf("[CODEGEN] Performing code generation for NumberExprAST.\n");
-	return GetValueFromDataType(&dt, Val);
+	return GetNumValueFromDataType(&dt, Val);
 }

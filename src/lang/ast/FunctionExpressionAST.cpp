@@ -56,6 +56,7 @@ Function *FunctionAST::codegen()
 			// Check if any error occurred during code generation
 			if (RetVal == nullptr)
 			{
+				LogError("Caught some codegen-fn error because accept returned nullptr");
 				TheFunction->eraseFromParent();
 				scopeManager.removeFunctionFromScope(true, P.getName());
 				return nullptr;
@@ -63,6 +64,7 @@ Function *FunctionAST::codegen()
 		}
 		else
 		{
+			LogError("Caught some codegen-fn error (IN ELSE) because accept returned nullptr ");
 			TheFunction->eraseFromParent();
 			scopeManager.removeFunctionFromScope(true, P.getName());
 			return nullptr;

@@ -230,7 +230,7 @@ Type* GetLLVMTypeFromDataType(DataType* dt)
 	}
 }
 
-Value* GetValueFromDataType(DataType* dt, double Val)
+Value* GetNumValueFromDataType(DataType* dt, double Val)
 {
 	auto type = GetLLVMTypeFromDataType(dt);
 

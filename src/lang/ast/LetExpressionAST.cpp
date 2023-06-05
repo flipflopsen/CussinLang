@@ -30,7 +30,7 @@ Value* LetExprAST::codegen()
 		}
 		else
 		{ // If not specified, use 0
-			InitVal = GetValueFromDataType(&this->dt);
+			InitVal = GetNumValueFromDataType(&this->dt);
 		}
 
 		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, VarName, GetLLVMTypeFromDataType(&this->dt));
@@ -46,7 +46,7 @@ Value* LetExprAST::codegen()
 	// Codegen the body, now that all vars are in scope.
 	if (Body == nullptr)
 	{
-		return GetValueFromDataType(&this->dt);
+		return GetNumValueFromDataType(&this->dt);
 	}
 	Value* BodyVal = Body->accept(&visitor);
 	if (!BodyVal)

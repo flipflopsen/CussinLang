@@ -606,7 +606,6 @@ char const* TokenTypeToString(TokenType type)
 	{
 	case TokenType_IDENTIFIER:
 		return "Identifier";
-	case TokenType_STRUCT:
 	case TokenType_ENUM:
 		return "Datastruct";
 	case TokenType_CONST:
@@ -672,6 +671,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_SCOPE:
 	case TokenType_SCOPED:
 	case TokenType_PERSISTENT:
+	case TokenType_STRUCT:
 		return "Keyword";
 	case TokenType_BINARY:
 	case TokenType_UNARY:
