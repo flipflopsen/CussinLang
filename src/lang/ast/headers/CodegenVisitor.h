@@ -1,26 +1,11 @@
 #ifndef AST2_H
 #define AST2_H
 
-
-#include "BinaryExpressionAST.h"
-#include "CallExpressionAST.h"
-#include "ForExpressionAST.h"
-#include "FunctionExpressionAST.h"
-#include "IfExpressionAST.h"
-#include "LetExpressionAST.h"
-#include "NumberExpressionAST.h"
-#include "PrototypeExpressionAST.h"
-#include "UnaryExpressionAST.h"
-#include "VariableExpressionAST.h"
-#include "StructExpressionAST.h"
-#include "ReturnExpressionAST.h"
-#include "ScopeExpressionAST.h"
-
 #include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/IRBuilder.h"
 
 #include "Visitor.h"
 
+/// CodegenVisitor header file
 class CodegenVisitor : public Visitor
 {
 public:

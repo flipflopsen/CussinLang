@@ -3,8 +3,23 @@
 #include <map>
 
 #include "../utils/Datatypes.h"
+#include "../utils/BinopPrecedence.h"
 #include "lexer.h"
-#include "ast/ast.h"
+#include "ast/headers/BinaryExpressionAST.h"
+#include "ast/headers/CallExpressionAST.h"
+#include "ast/headers/ForExpressionAST.h"
+#include "ast/headers/FunctionExpressionAST.h"
+#include "ast/headers/IfExpressionAST.h"
+#include "ast/headers/LetExpressionAST.h"
+#include "ast/headers/NumberExpressionAST.h"
+#include "ast/headers/PrototypeExpressionAST.h"
+#include "ast/headers/ReturnExpressionAST.h"
+#include "ast/headers/ScopeExpressionAST.h"
+#include "ast/headers/StructExpressionAST.h"
+#include "ast/headers/UnaryExpressionAST.h"
+#include "ast/headers/VariableExpressionAST.h"
+
+extern std::map<char, int> BinopPrecedence;
 
 class Parser
 {
@@ -13,7 +28,6 @@ public:
 	int CurTok;
 	int Count;
 	int Position;
-	static std::map<char, int> BinopPrecedence;
 
 	Parser(TokenArray tokens)
 	{
@@ -48,8 +62,8 @@ private:
 	std::unique_ptr<PrototypeAST> ParseExtern();
 	std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
 	std::unique_ptr<PrototypeAST> ParsePrototype(bool is_extern);
-	std::unique_ptr<ExprAST> ParseFnDef();
-	std::unique_ptr<ExprAST> ParseTopLevelExpr();
+	std::unique_ptr<FunctionAST> ParseFnDef();
+	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
 	std::unique_ptr<ExprAST> ParseUnary();
 	std::vector<std::unique_ptr<ExprAST>> ParseBlock();
 

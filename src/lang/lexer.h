@@ -82,6 +82,7 @@ enum TokenType
 	TokenType_DELETE,
 	TokenType_NULL,
 	TokenType_SCOPE,
+	TokenType_SCOPED,
 	TokenType_PERSISTENT,
 
 	//Python like boolean

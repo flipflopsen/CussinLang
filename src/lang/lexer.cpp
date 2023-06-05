@@ -310,6 +310,11 @@ Token GetToken(Tokenizer& tokenizer)
 				token.type = TokenType_SCOPE;
 				break;
 			}
+			if (strcompare(token.contents, "scoped"))
+			{
+				token.type = TokenType_SCOPED;
+				break;
+			}
 			if (strcompare(token.contents, "binary"))
 			{
 				token.type = TokenType_BINARY;
@@ -665,6 +670,7 @@ char const* TokenTypeToString(TokenType type)
 	case TokenType_NULL:
 	case TokenType_EXTERN:
 	case TokenType_SCOPE:
+	case TokenType_SCOPED:
 	case TokenType_PERSISTENT:
 		return "Keyword";
 	case TokenType_BINARY:

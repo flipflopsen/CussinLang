@@ -1,7 +1,7 @@
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H
 
-#include "../lang/ast/ast.h"
+#include "../lang/ast/headers/PrototypeExpressionAST.h"
 
 #include <map>
 #include <string>

@@ -15,10 +15,11 @@ constexpr bool optimizations = false;
 //TODO: Migrate this to GTest
 const std::vector<std::string> inputs =
 {
-	"persistent scope testo { fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2;x = z + 3;return x;} }",
-	"persistent scope testo { fn main() -> i32 { return test(1,2); } }",
-	"fn main() -> i32 { return test(1,2); }"
-	//"let x:i32 = 3; fn test(y: i32) -> i32 { let z: i32 = 2; return y + z; }"
+	//"scoped::testo->test(1,2);"
+	//"persistent scope testo { fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2;x = z + 3;return x;} }",
+	//"persistent scope testo { fn main() -> i32 { return test(1,2); } }",
+	//"fn main() -> i32 { return test(1,2); }"
+	"fn test(y: i32) -> i32 { let z: i32 = 2; return y + z; }"
 	//"persistent scope testo { fn test(x: i32, y: i32) -> i32 {let z: i32 = (x + y) * 2; x = z + 3; return x; }};",
 	//"scope testo {test(1,2); };",
 	//"test(1,2); "

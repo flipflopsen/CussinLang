@@ -1,10 +1,10 @@
 #ifndef CALLAST_H
 #define CALLAST_H
 
-#include "ExpressionAST.h"
 #include "Visitor.h"
+#include "ExpressionAST.h"
 
-
+/// CallExprAST - Expression class for function calls
 class CallExprAST : public ExprAST
 {
 	std::string Callee;
@@ -21,5 +21,7 @@ public:
 
 	Value* codegen();
 };
+
+// Codegen implementations
 
 #endif

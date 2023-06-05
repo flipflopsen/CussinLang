@@ -2,23 +2,13 @@
 
 #include "parser.h"
 #include "../utils/util.h"
+#include "../utils/logger.h"
 
-std::map<char, int> Parser::BinopPrecedence;
-std::unique_ptr<ExprAST> LogError(const char* Str);
-std::unique_ptr<PrototypeAST> LogErrorP(const char* Str);
 std::map<std::string, DataType> KnownVars;
 
 
 void Parser::Parse(bool jit)
 {
-	if (BinopPrecedence.empty())
-	{
-		BinopPrecedence['='] = 2;
-		BinopPrecedence['<'] = 10;
-		BinopPrecedence['+'] = 20;
-		BinopPrecedence['-'] = 20;
-		BinopPrecedence['*'] = 40;
-	}
 	if (jit)
 	{
 		while (Position < Count) {
@@ -86,9 +76,6 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 		return ParseCallExpr();
 	
 	switch (CurTok) {
-	case TokenType_FN:
-		printf("[PARSER] Parsing FnDef in Scope!\n");
-		return ParseFnDef();
 	case TokenType_SEMICOLON:
 		getNextToken(); // Consume the semicolon
 		printf("[PARSER] Parsing of Expression is done!\n");
@@ -425,7 +412,7 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames), ReturnType, Kind != 0, BinaryPrecedence);
 }
 
-std::unique_ptr<ExprAST> Parser::ParseFnDef()
+std::unique_ptr<FunctionAST> Parser::ParseFnDef()
 {
 	getNextToken(); // eat next token
 	auto Proto = ParsePrototype(false);
@@ -448,7 +435,7 @@ std::unique_ptr<ExprAST> Parser::ParseFnDef()
 	return std::make_unique<FunctionAST>(std::move(Proto), std::move(Body));
 }
 
-std::unique_ptr<ExprAST> Parser::ParseTopLevelExpr()
+std::unique_ptr<FunctionAST> Parser::ParseTopLevelExpr()
 {
 	printf("[PARSER-TLE] Starting to parse TLE!\n");
 	std::vector<std::unique_ptr<ExprAST>> body;
@@ -710,16 +697,8 @@ void Parser::HandleDefinition()
 
 	printf("[PARSER-Init] Parsing Definition\n");
 
-	std::unique_ptr<ExprAST> expr = ParseFnDef();
-	std::unique_ptr<FunctionAST> function = nullptr;
-	std::unique_ptr<PrototypeAST> proto = nullptr;
+	std::unique_ptr<FunctionAST> function = ParseFnDef();
 
-
-	if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(expr.get()))
-	{
-		function.reset(static_cast<FunctionAST*>(funcAST));
-		expr.release();
-	}
 	if (function) {
 		fprintf(stderr, "[PARSER-DONE] Got FnAST\n");
 		if (auto* FnIR = function->accept(&visitor)) {
@@ -740,38 +719,14 @@ void Parser::HandleTopLevelExpression()
 	CodegenVisitor visitor;
 
 	printf("[PARSER-Init] Parsing TLE.\n");
-
-	std::unique_ptr<ExprAST> expr = ParseTopLevelExpr();
-	std::unique_ptr<FunctionAST> function = nullptr;
+	std::unique_ptr<FunctionAST> function = ParseTopLevelExpr();
 	std::unique_ptr<PrototypeAST> proto = nullptr;
 
-
-	if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(expr.get()))
-	{
-		function.reset(static_cast<FunctionAST*>(funcAST));
-		expr.release();
-	}
-	else if (PrototypeAST* protoAST = dynamic_cast<PrototypeAST*>(expr.get()))
-	{
-		proto.reset(static_cast<PrototypeAST*>(protoAST));
-		expr.release();
-	}
-
-	if (function) 
+	if (function)
 	{
 		fprintf(stderr, "[PARSER-DONE] Got TLE-FN-AST\n");
 		if (auto* FnIR = function->accept(&visitor)) {
 			fprintf(stderr, "[PARSER-CG-DONE] Read TLE FN expression: \n");
-			FnIR->print(errs());
-			fprintf(stderr, "\n");
-			FnIR->eraseFromParent();
-		}
-	}
-	else if (proto) 
-	{
-		fprintf(stderr, "[PARSER-DONE] Got TLE_PROTO-AST\n");
-		if (auto* FnIR = proto->accept(&visitor)) {
-			fprintf(stderr, "[PARSER-CG-DONE] Read TLE  expression: \n");
 			FnIR->print(errs());
 			fprintf(stderr, "\n");
 			FnIR->eraseFromParent();
@@ -888,17 +843,6 @@ Token Parser::PeekNextToken()
 Token Parser::PeekCurrentToken()
 {
 	return Tokens.tokens[Position - 1];
-}
-
-
-std::unique_ptr<ExprAST> LogError(const char* Str) {
-	fprintf(stderr, "[PARSER-ERROR] %s\n", Str);
-	return nullptr;
-}
-
-std::unique_ptr<PrototypeAST> LogErrorP(const char* Str) {
-	LogError(Str);
-	return nullptr;
 }
 
 // 0 = Current, 1 = next, 2 = next next

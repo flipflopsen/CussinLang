@@ -4,6 +4,7 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
+/// IfExprAST - Class for if expressions
 class IfExprAST : public ExprAST
 {
 	std::unique_ptr<ExprAST> Cond, Then, Else;

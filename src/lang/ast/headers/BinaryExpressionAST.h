@@ -2,7 +2,6 @@
 #define BINARYAST_H
 
 #include "ExpressionAST.h"
-#include "Visitor.h"
 
 /// BinaryExprAST - Expression class for a binary operator.
 class BinaryExprAST : public ExprAST

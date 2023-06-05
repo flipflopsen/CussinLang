@@ -1,10 +1,17 @@
-#ifndef VISITORS_H
-#define VISITORS_H
-
-
-#include "codegen.h"
-
-// Visitor implementations
+#include "headers/CodegenVisitor.h"
+#include "headers/BinaryExpressionAST.h"
+#include "headers/CallExpressionAST.h"
+#include "headers/ForExpressionAST.h"
+#include "headers/FunctionExpressionAST.h"
+#include "headers/IfExpressionAST.h"
+#include "headers/LetExpressionAST.h"
+#include "headers/NumberExpressionAST.h"
+#include "headers/PrototypeExpressionAST.h"
+#include "headers/ReturnExpressionAST.h"
+#include "headers/ScopeExpressionAST.h"
+#include "headers/StructExpressionAST.h"
+#include "headers/UnaryExpressionAST.h"
+#include "headers/VariableExpressionAST.h"
 
 Value* CodegenVisitor::visit(NumberExprAST* ast)
 {
@@ -95,7 +102,7 @@ Value* CodegenVisitor::visit(StructExprAST* ast)
 }
 Value* CodegenVisitor::visit(ReturnExprAST* ast)
 {
-	//printf("[CODEGEN] CodegenVisitor is visiting StructExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting ReturnExprAST\n");
 
 	auto ret = ast->codegen();
 	//TheModule->print(errs(), nullptr);
@@ -103,11 +110,9 @@ Value* CodegenVisitor::visit(ReturnExprAST* ast)
 }
 Value* CodegenVisitor::visit(ScopeExprAST* ast)
 {
-	//printf("[CODEGEN] CodegenVisitor is visiting StructExprAST\n");
+	//printf("[CODEGEN] CodegenVisitor is visiting ScopetExprAST\n");
 
 	ast->codegen();
 	//TheModule->print(errs(), nullptr);
 	return nullptr;
 }
-
-#endif

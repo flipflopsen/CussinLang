@@ -1,10 +1,11 @@
 #ifndef FUNCAST_H
 #define FUNCAST_H
 
-#include "ExpressionAST.h"
-#include "Visitor.h"
+#include "../../../utils/BinopPrecedence.h"
+#include "PrototypeExpressionAST.h"
 
-class FunctionAST : public ExprAST
+/// FunctionAST - Class for function def and decl
+class FunctionAST
 {
 	std::unique_ptr<PrototypeAST> Proto;
 	std::vector<std::unique_ptr<ExprAST>> Body;

@@ -36,7 +36,7 @@ add_definitions(${LLVM_DEFINITIONS})
 
 find_package(GTest REQUIRED CONFIG)
 
-#enable_testing()
+enable_testing()
 
 set(SOURCES
 		"src/lang/lexer.cpp"
@@ -50,27 +50,44 @@ set(SOURCES
 		"src/llvmstuff/codegen.cpp"
 		"src/jit/CussinJIT.h"
 		"src/utils/DataTypes.h" 
-		"src/lang/ast/ast.h"
-		"src/lang/ast/BinaryExpressionAST.h"
-		"src/lang/ast/CallExpressionAST.h"
-		"src/lang/ast/ForExpressionAST.h"
-		"src/lang/ast/FunctionExpressionAST.h"
-		"src/lang/ast/IfExpressionAST.h"
-		"src/lang/ast/LetExpressionAST.h"
-		"src/lang/ast/NumberExpressionAST.h"
-		"src/lang/ast/PrototypeExpressionAST.h"
-		"src/lang/ast/UnaryExpressionAST.h"
-		"src/lang/ast/VariableExpressionAST.h"
-		"src/lang/ast/StructExpressionAST.h"
-		"src/lang/ast/ReturnExpressionAST.h"
-		"src/lang/ast/ExpressionAST.h" 
-		"src/lang/ast/Visitor.h"
-		"src/llvmstuff/visitors.h"
-		"src/test/CussinLangImplTest.cpp"
+		"src/lang/ast/headers/ExpressionAST.h" 
+		"src/lang/ast/headers/CodegenVisitor.h"
+		"src/lang/ast/headers/BinaryExpressionAST.h"
+		"src/lang/ast/headers/CallExpressionAST.h"
+		"src/lang/ast/headers/ForExpressionAST.h"
+		"src/lang/ast/headers/FunctionExpressionAST.h"
+		"src/lang/ast/headers/IfExpressionAST.h"
+		"src/lang/ast/headers/LetExpressionAST.h"
+		"src/lang/ast/headers/NumberExpressionAST.h"
+		"src/lang/ast/headers/PrototypeExpressionAST.h"
+		"src/lang/ast/headers/UnaryExpressionAST.h"
+		"src/lang/ast/headers/VariableExpressionAST.h"
+		"src/lang/ast/headers/StructExpressionAST.h"
+		"src/lang/ast/headers/ReturnExpressionAST.h"	
+		"src/lang/ast/BinaryExpressionAST.cpp"
+		
 		"src/llvmstuff/SymbolTable.h" 
-		"src/lang/ast/ScopeExpressionAST.h"  
+		"src/lang/ast/headers/ScopeExpressionAST.h"  
 		"src/llvmstuff/ScopeManager.h"
- )
+		"src/utils/logger.h" 
+		"src/lang/ast/CallExpressionAST.cpp" 
+		"src/lang/ast/ScopeExpressionAST.cpp" 
+		"src/lang/ast/ReturnExpressionAST.cpp" 
+		"src/lang/ast/LetExpressionAST.cpp" 
+		"src/lang/ast/ForExpressionAST.cpp" 
+		"src/lang/ast/IfExpressionAST.cpp" 
+		"src/lang/ast/UnaryExpressionAST.cpp" 
+		"src/lang/ast/FunctionExpressionAST.cpp" 
+		"src/lang/ast/NumberExpressionAST.cpp" 
+		"src/lang/ast/VariableExpressionAST.cpp" 
+		"src/lang/ast/PrototypeExpressionAST.cpp" 
+		"src/lang/ast/StructExpressionAST.cpp"
+		 
+		"src/utils/BinopPrecedence.h" 
+		"src/utils/logger.cpp" 
+		"src/llvmstuff/datastorage.h" 
+		"src/lang/ast/headers/Visitor.h"
+ "src/lang/ast/CodegenVisitor.cpp")
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
@@ -98,3 +115,5 @@ foreach(target ${LLVM_TARGETS_TO_BUILD})
 endforeach()
 
 target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+
+#add_test(Name CussinLangImplTest COMMANF CussinLangImplTest)

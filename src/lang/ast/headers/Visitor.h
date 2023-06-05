@@ -24,6 +24,7 @@ using namespace llvm;
 class Visitor
 {
 public:
+	virtual ~Visitor() = default;
 	virtual Value* visit(NumberExprAST* ast) = 0;
 	virtual Value* visit(VariableExprAST* ast) = 0;
 	virtual Value* visit(BinaryExprAST* ast) = 0;

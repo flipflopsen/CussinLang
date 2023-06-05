@@ -7,23 +7,25 @@
 #include <string>
 #include <vector>
 
-#include "../../utils/Datatypes.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
+#include "CodegenVisitor.h"
 
-#include "Visitor.h"
+class Visitor;
 
-using namespace llvm;
-
+/// ExpressionAST superclass
 class ExprAST
 {
 public:
 	virtual ~ExprAST() = default;
-	virtual Value* accept(Visitor* visitor) = 0;
+	virtual llvm::Value* accept(Visitor* visitor) = 0;
 
 };
+
+#include "../../../utils/Datatypes.h"
+#include "../../../llvmstuff/datastorage.h"
 
 #endif

@@ -4,6 +4,7 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
+
 class ScopeExprAST : public ExprAST {
 private:
     std::string Name;

@@ -12,12 +12,12 @@ class VariableExprAST : public ExprAST
 public:
 	VariableExprAST(const std::string& Name, DataType dt) : Name(Name), dt(dt) {}
 
-	Value* accept(Visitor* visitor) override {
+	llvm::Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);
 	}
 
 	const std::string& getName() const { return Name; }
-	Value* codegen();
+	llvm::Value* codegen();
 };
 
 #endif

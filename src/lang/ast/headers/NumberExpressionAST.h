@@ -11,11 +11,11 @@ class NumberExprAST : public ExprAST {
 public:
 	NumberExprAST(double val, DataType dt = DT_I32) : Val(val), dt(dt) {}
 
-	Value* accept(Visitor* visitor) override {
+	llvm::Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);
 	}
 
-	Value* codegen();
+	llvm::Value* codegen();
 };
 
 #endif

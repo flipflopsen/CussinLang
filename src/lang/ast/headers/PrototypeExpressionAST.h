@@ -4,12 +4,13 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
+
 class PrototypeAST
 {
 	std::string Name;
 	std::vector< std::pair<std::string, DataType>> Args;
 	bool IsOperator;
-	unsigned Precedence; // Precedence if BinOp
+	unsigned Precedence;
 	DataType returnType;
 
 public:
@@ -36,4 +37,4 @@ public:
 	unsigned getBinaryPrecedence() const { return Precedence; }
 };
 
-#endif // !PROTOTYPEEXPRAST_H
+#endif

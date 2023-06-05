@@ -4,6 +4,7 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
+/// ForExprAST - Class for for loops
 class ForExprAST : public ExprAST
 {
 	std::string VarName;

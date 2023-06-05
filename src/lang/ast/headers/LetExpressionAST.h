@@ -4,6 +4,7 @@
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
+/// LetExprAST - Class for let expressions
 class LetExprAST : public ExprAST
 {
 	std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
