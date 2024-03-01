@@ -1,8 +1,8 @@
-# Install script for directory: G:/Programmierscheiss/CussingLang/CussingLangImpl
+# Install script for directory: C:/Users/Lance/Programming/CussinLang
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "G:/Programmierscheiss/CussingLang/CussingLangImpl/out/install/x64-debug")
+  set(CMAKE_INSTALL_PREFIX "C:/Users/Lance/Programming/CussinLang/out/install/x64-debug")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "G:/Programmierscheiss/CussingLang/CussingLangImpl/out/build/x64-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

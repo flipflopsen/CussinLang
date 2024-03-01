@@ -15,7 +15,7 @@ constexpr bool optimizations = false;
 //TODO: Migrate this to GTest
 const std::vector<std::string> inputs =
 {
-	"struct lul {x: i64, y: i64 };"
+	//"struct lul {x: i64, y: i64 };"
 	//"scoped::testo->test(1,2);"
 	//"persistent scope testo { fn test(x: i32, y: i32) -> i32 { let z: i32 = (x + y) * 2;x = z + 3;return x;} }",
 	//"persistent scope testo { fn main() -> i32 { return test(1,2); } }",
@@ -44,7 +44,7 @@ const std::vector<std::string> inputs =
 	//"fn test(x) -> i64 { (1 + 2) + x; }",
 	//"fn test(x) -> i64 { (1 + 2 + x); (3 + 4 + x); }",
 	//"fn test2(x) -> i64 { (1+2+x)*(x+(1+2)); }"
-	//"fn test(x) -> i64 {4 + 5;}"
+	"fn test(x) -> i64 {4 + 5;}"
 };
 
 void MainLoop()
@@ -78,7 +78,7 @@ void MainLoop()
 		ctr++;
 		//DeleteTokens(token_array);
 	}
-
+	
 	MergeModulesAndPrint();
 	printf("Printed!\n");
 	ObjectCodeGen();
@@ -90,11 +90,8 @@ int main()
 {
 	printf("Starting CussingLangImpl \n");
 
-
 	InitializeTargets();
-
 	InitializeModule(optimizations);
-
 	//InitializeJIT();
 
 	MainLoop();

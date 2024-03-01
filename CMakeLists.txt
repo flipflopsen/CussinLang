@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for CussingLangImpl, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.20.0)
 
 # Enable Hot Reload for MSVC compilers if supported.
 #if (POLICY CMP0141)
@@ -9,47 +9,34 @@ cmake_minimum_required (VERSION 3.8)
 #  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 #endif()
 
-
 project ("CussingLangImpl")
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Set LLVm installation directory
-set (LLVM_DIR "G:\\Programme\\LLVM\\lib\\cmake\\llvm\\")
-
-# Include GTest
-set(GTEST_ROOT "G:\\Programme\\vcpkg\\installed\\x64-windows" CACHE PATH "GTest root directory")
-
-set(GTEST_INCLUDE_DIRS "${GTEST_ROOT}\\include")
-include_directories("${GTEST_INCLUDE_DIRS}")
-set(GTEST_LIBRARIES "${GTEST_ROOT}\\lib\\gtest.lib")
-set(GMOCK_INCLUDE_DIRS "${GTEST_ROOT}\\include")
-set(GMOCK_LIBRARIES "${GTEST_ROOT}\\lib\\gmock.lib")
-set(GMOCK_MAIN_LIBRARIES "${GTEST_ROOT}\\lib\\gmock_main.lib")
+# Include vcpkg
+include(B:/Programs/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 # Find LLVM package
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM CONFIG REQUIRED)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-find_package(GTest REQUIRED CONFIG)
-
-enable_testing()
+#enable_testing()
 
 set(SOURCES
+		# Main Entry Point for Testing and Debugging etc.
+		"src/CussingLangImpl.cpp"
+		"src/CussingLangImpl.h"
+
+		# Lexer and Parser
 		"src/lang/lexer.cpp"
 		"src/lang/lexer.h"
 		"src/lang/parser.cpp"
 		"src/lang/parser.h"
-		"src/utils/util.h"
-		"src/CussingLangImpl.cpp"
-		"src/CussingLangImpl.h"
-		"src/llvmstuff/codegen.h"
-		"src/llvmstuff/codegen.cpp"
-		"src/jit/CussinJIT.h"
-		"src/utils/DataTypes.h" 
+
+		# AST Headers
 		"src/lang/ast/headers/ExpressionAST.h" 
 		"src/lang/ast/headers/CodegenVisitor.h"
 		"src/lang/ast/headers/BinaryExpressionAST.h"
@@ -64,12 +51,11 @@ set(SOURCES
 		"src/lang/ast/headers/VariableExpressionAST.h"
 		"src/lang/ast/headers/StructExpressionAST.h"
 		"src/lang/ast/headers/ReturnExpressionAST.h"	
-		"src/lang/ast/BinaryExpressionAST.cpp"
-		
-		"src/llvmstuff/SymbolTable.h" 
 		"src/lang/ast/headers/ScopeExpressionAST.h"  
-		"src/llvmstuff/ScopeManager.h"
-		"src/utils/logger.h" 
+		"src/lang/ast/headers/Visitor.h"
+
+		# AST Impl
+		"src/lang/ast/BinaryExpressionAST.cpp"
 		"src/lang/ast/CallExpressionAST.cpp" 
 		"src/lang/ast/ScopeExpressionAST.cpp" 
 		"src/lang/ast/ReturnExpressionAST.cpp" 
@@ -82,23 +68,33 @@ set(SOURCES
 		"src/lang/ast/VariableExpressionAST.cpp" 
 		"src/lang/ast/PrototypeExpressionAST.cpp" 
 		"src/lang/ast/StructExpressionAST.cpp"
-		 
-		"src/utils/BinopPrecedence.h" 
-		"src/utils/logger.cpp" 
+		"src/lang/ast/CodegenVisitor.cpp"
+
+		# LLVM Codegen STuff
+		"src/llvmstuff/codegen.h"
+		"src/llvmstuff/codegen.cpp"
+		"src/llvmstuff/SymbolTable.h" 
+		"src/llvmstuff/ScopeManager.h"
 		"src/llvmstuff/datastorage.h" 
-		"src/lang/ast/headers/Visitor.h"
- "src/lang/ast/CodegenVisitor.cpp")
+		"src/jit/CussinJIT.h"
+
+		# Utils
+		"src/utils/DataTypes.h"
+		"src/utils/util.h"
+		"src/utils/logger.h" 
+		"src/utils/BinopPrecedence.h" 
+		"src/utils/logger.cpp")
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
 
 # Link LLVM libraries and flags
 llvm_map_components_to_libnames(LLVM_LIBS
-  #all
   Analysis
   Core
   ExecutionEngine
   InstCombine
+  Linker
   Object
   RuntimeDyld
   ScalarOpts
@@ -114,6 +110,4 @@ foreach(target ${LLVM_TARGETS_TO_BUILD})
   list(APPEND targets "LLVM${target}CodeGen")
 endforeach()
 
-target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
-
-#add_test(Name CussinLangImplTest COMMANF CussinLangImplTest)
+target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets})

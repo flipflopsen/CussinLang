@@ -1,3 +1,7 @@
-G:/Programmierscheiss/CussingLang/CussingLangImpl/out/build/x64-debug/CMakeFiles/CussingLangImpl.dir
-G:/Programmierscheiss/CussingLang/CussingLangImpl/out/build/x64-debug/CMakeFiles/edit_cache.dir
-G:/Programmierscheiss/CussingLang/CussingLangImpl/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/intrinsics_gen.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/omp_gen.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/acc_gen.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/RISCVTargetParserTableGen.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/CussingLangImpl.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/edit_cache.dir
+C:/Users/Lance/Programming/CussinLang/out/build/x64-debug/CMakeFiles/rebuild_cache.dir

@@ -24,7 +24,7 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/TargetParser/Host.h"
-#include "llvm/ExecutionEngine/MCJIT.h"
+//#include "llvm/ExecutionEngine/MCJIT.h"
 #include <llvm/Linker/Linker.h>
 
 #include <codecvt>

@@ -1,3 +1,0 @@
-G:/Programmierscheiss/CussingLang/CussingLangImpl/build/CMakeFiles/CussingLangImpl.dir
-G:/Programmierscheiss/CussingLang/CussingLangImpl/build/CMakeFiles/ALL_BUILD.dir
-G:/Programmierscheiss/CussingLang/CussingLangImpl/build/CMakeFiles/ZERO_CHECK.dir
