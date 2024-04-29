@@ -66,7 +66,7 @@ Function *FunctionAST::codegen()
 				return nullptr;
 			}
 			if (!containsRet)
-				Builder->CreateRet(RetVal);
+				Builder->CreateRet(RetVal); // This here doesn't work as expected.
 		}
 		else
 		{
@@ -79,7 +79,6 @@ Function *FunctionAST::codegen()
 
 	if (P.getReturnType() == DT_VOID && !containsRet)
 	{
-		//Builder->CreateRetVoid();
 		scopeManager.getBuilderOfCurrentScope()->CreateRetVoid();
 	}
 

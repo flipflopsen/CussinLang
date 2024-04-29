@@ -12,7 +12,8 @@
 #include "ContextManager.h"
 #include "../utils/util.h"
 
-class ScopeManager {
+class ScopeManager 
+{
 private:
     static std::once_flag _initFlag;
     static std::unique_ptr<ScopeManager> _instance;
