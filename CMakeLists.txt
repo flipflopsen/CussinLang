@@ -23,7 +23,9 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-#enable_testing()
+# GTest
+enable_testing()
+find_package(GTest CONFIG REQUIRED)
 
 set(SOURCES
 		# Main Entry Point for Testing and Debugging etc.
@@ -74,8 +76,11 @@ set(SOURCES
 		"src/llvmstuff/codegen.h"
 		"src/llvmstuff/codegen.cpp"
 		"src/llvmstuff/SymbolTable.h" 
-		"src/llvmstuff/ScopeManager.h"
 		"src/llvmstuff/datastorage.h" 
+		"src/llvmstuff/ContextManager.h"
+		"src/llvmstuff/ModuleManager.h"
+		"src/llvmstuff/ScopeManager.h"
+		"src/llvmstuff/ScopeManager.cpp"
 		"src/jit/CussinJIT.h"
 
 		# Utils
@@ -83,10 +88,19 @@ set(SOURCES
 		"src/utils/util.h"
 		"src/utils/logger.h" 
 		"src/utils/BinopPrecedence.h" 
-		"src/utils/logger.cpp")
+		"src/utils/logger.cpp"
+)
+
+set(TESTS
+	"src/test/CussinLangImplTest.cpp"
+)
+
+# Library from sources for linking to GTest
+add_library(core_lib ${SOURCES})
 
 # Add source to this project's executable.
 add_executable (CussingLangImpl ${SOURCES})
+add_executable (UnitTests ${TESTS})
 
 # Link LLVM libraries and flags
 llvm_map_components_to_libnames(LLVM_LIBS
@@ -110,4 +124,19 @@ foreach(target ${LLVM_TARGETS_TO_BUILD})
   list(APPEND targets "LLVM${target}CodeGen")
 endforeach()
 
-target_link_libraries(CussingLangImpl ${LLVM_LIBS} ${targets})
+target_link_libraries(CussingLangImpl PRIVATE core_lib)
+target_link_libraries(UnitTests PRIVATE core_lib GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+target_link_libraries(core_lib PUBLIC ${LLVM_LIBS})
+
+# Tests
+#add_test(NAME TestExternPutchard COMMAND UnitTests)
+#add_test(NAME TestMethodDeclaration COMMAND UnitTests)
+#add_test(NAME TestFunctionCall COMMAND UnitTests)
+add_test(NAME TestArithmetic COMMAND UnitTests)
+
+# Optional: Add compile options or definitions if needed
+add_compile_options(/FR)
+
+target_include_directories(UnitTests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+)

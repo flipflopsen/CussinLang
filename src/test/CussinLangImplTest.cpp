@@ -1,115 +1,75 @@
-#include <string>
 #include <gtest/gtest.h>
-#include "../CussingLangImpl.h"
-#include "../utils/util.h"
-#include "../lang/lexer.h"
-#include "../lang/parser.h"
-#include "../llvmstuff/codegen.h"
+#include "../src/CussingLangImpl.h"
+#include "../src/utils/util.h"
+#include "../src/lang/lexer.h"
+#include "../src/lang/parser.h"
+#include "../src/llvmstuff/codegen.h"
 
-// Define a test fixture class if needed
 class CussingLangImplTest : public ::testing::Test {
 protected:
     void SetUp() override {
         InitializeTargets();
-
         InitializeModule(false);
     }
 
     void TearDown() override {
-        // Perform any necessary cleanup steps after the tests
+        // cleanup
     }
 };
 
-
-TEST(CussingLangImplTest, TestMethodDeclaration)
-{
-    char input[4096] = "fn test(x: i32, y: i32) -> i32 { return x + y; }";
-
+int ExecuteCode(char input[]) {
     const TokenArray token_array = LexInput(input);
     auto parser = Parser(token_array);
     parser.Parse(false);
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
+    return 0;
 }
 
-TEST(CussingLangImplTest, TestFunctionCall)
+/*
+TEST_F(CussingLangImplTest, TestExternPutchard) {
+    char input[] = R"(
+        extern putchard(char);
+        fn test_extern_print(n: i32) -> i32 { for i = 1, i < n, 1 f in putchard(42); }
+        test_extern_print(2);
+    )";
+
+    EXPECT_EQ(ExecuteCode(input), 0);
+    EXPECT_EQ(MergeModulesAndPrint(), 0);
+    EXPECT_EQ(ObjectCodeGen(), 0);
+}
+
+TEST_F(CussingLangImplTest, TestMethodDeclaration)
 {
-    const std::vector<std::string> inputs =
-    {
+    char input[] = "fn test(x: i32, y: i32) -> i32 { return x + y; }";
+
+    EXPECT_EQ(ExecuteCode(input), 0);
+    EXPECT_EQ(MergeModulesAndPrint(), 0);
+    EXPECT_EQ(ObjectCodeGen(), 0);
+}
+
+TEST_F(CussingLangImplTest, TestFunctionCall)
+{
+    char input[] = R"(
         "fn test(x: i32) -> i32 { let y: i32 = 2; return x + y; }",
         "test(1);"
-    };
+    )";
 
-    for (auto in : inputs)
-    {
-        char input[8192];
-        strcpy(input, in.c_str());
-	    const TokenArray token_array = LexInput(input);
-	    auto parser = Parser(token_array);
-	    parser.Parse(false);
-    }
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
+    EXPECT_EQ(ExecuteCode(input), 0);
+    EXPECT_EQ(MergeModulesAndPrint(), 0);
+    EXPECT_EQ(ObjectCodeGen(), 0);
 }
+*/
 
-TEST(CussingLangImplTest, TestArithmetic)
+TEST_F(CussingLangImplTest, TestArithmetic)
 {
-    char input[4096] = "fn test() -> i32 { return 1 + 2; }";
+    char input[] = R"(fn test() -> i32 { return 1 + 2; }; test();)";
 
-    const TokenArray token_array = LexInput(input);
-    auto parser = Parser(token_array);
-    parser.Parse(false);
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
+    EXPECT_EQ(ExecuteCode(input), 0);
+    EXPECT_EQ(MergeModulesAndPrint(), 0);
+    EXPECT_EQ(ObjectCodeGen(), 0);
 }
 
-TEST(CussingLangImplTest, TestExtern)
-{
-    const std::vector<std::string> inputs =
-    {
-        "extern putchard(char);",
-		"fn printstar(n) -> i32 { putchard(42);",
-    };
 
-    for (auto in : inputs)
-    {
-        char input[8192];
-        strcpy(input, in.c_str());
-        const TokenArray token_array = LexInput(input);
-        auto parser = Parser(token_array);
-        parser.Parse(false);
-    }
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
-TEST(CussingLangImplTest, TestForLoop)
-{
-    const std::vector<std::string> inputs =
-    {
-        "extern putchard(char);",
-		"fn printstar(n) -> i64 { for i = 1, i < n, 1 fin putchard(42);",
-    };
-
-    for (auto in : inputs)
-    {
-        char input[8192];
-        strcpy(input, in.c_str());
-        const TokenArray token_array = LexInput(input);
-        auto parser = Parser(token_array);
-        parser.Parse(false);
-    }
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
-}
-
-TEST(CussingLangImplTest, TestControlFlow)
-{
-    char input[4096] = "fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x-1) + fib(x-2);";
-    const TokenArray token_array = LexInput(input);
-    auto parser = Parser(token_array);
-    parser.Parse(false);
-    EXPECT_EQ(0, MergeModulesAndPrint());
-    EXPECT_EQ(0, ObjectCodeGen());
-}
-

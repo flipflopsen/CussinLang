@@ -6,6 +6,8 @@
 
 Value* ScopeExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for Scope"
 		"AST.\n");
 	CodegenVisitor visitor;

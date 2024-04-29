@@ -1,6 +1,8 @@
 #include "datastorage.h"
 #include "codegen.h"
 #include "../lang/ast/headers/CodegenVisitor.h"
+#include "ContextManager.h"
+#include "ModuleManager.h"
 
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -21,6 +23,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/TargetParser/Host.h"
@@ -33,22 +36,23 @@
 using namespace llvm;
 using namespace llvm::sys;
 
-std::unique_ptr<LLVMContext> TheContext;
-std::unique_ptr<legacy::FunctionPassManager> TheFPM;
-ExecutionEngine* engine;
+std::shared_ptr<LLVMContext> TheContext;
+std::shared_ptr<legacy::FunctionPassManager> TheFPM;
 std::unique_ptr<Module> TheModule;
+
+ExecutionEngine* engine;
 Module* ModuleVar;
 IRBuilder<>* Builder;
-ScopeManager& scopeManager = ScopeManager::getInstance();
 
 
 Function* getFunction(std::string Name) {
+	auto& scopeManager = ScopeManager::getInstance();
 	CodegenVisitor visitor;
 
-	if (auto* F = ModuleVar->getFunction(Name))
-		return F;
+	//f (auto* F = ModuleVar->getFunction(Name))
+	//    return F;
 
-	PrototypeAST* proto = scopeManager.getFunctionFromCurrentScope(Name);
+	PrototypeAST* proto = scopeManager.getFunction(true, Name);
 	if (proto)
 		return proto->accept(&visitor);
 
@@ -71,11 +75,23 @@ AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, const std::string &Var
 
 void InitializeModule(bool optimizations)
 {
-	// Open a new context and module.
-	TheContext = std::make_unique<LLVMContext>();
-	TheModule = std::make_unique<Module>("cussinJIT", *TheContext);
-	//TheModule->setDataLayout(TheJIT->getDataLayout());
+	auto contextManager = ContextManager::getInstance();
+	auto context = contextManager->getContext();
+	TheContext = context;
+
+	auto moduleManager = ModuleManager::getInstance(context);
+	auto& module = moduleManager->getModule("cussinJIT");
+
+	auto moduleCopy = llvm::CloneModule(*module);
+	TheModule = std::move(moduleCopy);
+
 	TheFPM = std::make_unique<legacy::FunctionPassManager>(TheModule.get());
+
+	// Open a new context and module.
+	//TheContext = std::make_unique<LLVMContext>();
+	//TheModule = std::make_unique<Module>("cussinJIT", *TheContext);
+	//TheModule->setDataLayout(TheJIT->getDataLayout());
+	//TheFPM = std::make_unique<legacy::FunctionPassManager>(TheModule.get());
 
 	if (optimizations)
 	{
@@ -101,10 +117,12 @@ void InitializeModule(bool optimizations)
 	TheFPM->doInitialization();
 
 	// Create a new builder for the module.
-
-	scopeManager.setContext(TheContext.get());
-	Builder = scopeManager.getBuilderOfCurrentScope();
-	ModuleVar = scopeManager.getModuleOfCurrentScope();
+	ScopeManager& manager = ScopeManager::getInstance();
+	manager.initializeGlobalScope();
+	manager.setContext();
+	manager.enterGlobalScope();
+	Builder = manager.getBuilderOfCurrentScope();
+	ModuleVar = manager.getModuleOfCurrentScope();
 	//Builder = std::make_unique<IRBuilder<>>(*TheContext);
 	//Builder2 = std::make_unique<IRBuilder<>>(*TheContext);
 }
@@ -118,7 +136,15 @@ void InitializeJIT()
 		TheModule->dump();
 	}
 
-	llvm::EngineBuilder engineBuilder(std::move(TheModule));
+	auto contextManager = ContextManager::getInstance();
+	auto context = contextManager->getContext();
+
+	auto moduleManager = ModuleManager::getInstance(context);
+	auto& module = moduleManager->getModule("cussinJIT");
+
+	auto moduleCopy = llvm::CloneModule(*module);
+
+	llvm::EngineBuilder engineBuilder(std::move(moduleCopy));
 
 	engineBuilder
 		.setErrorStr(&error)
@@ -130,7 +156,21 @@ void InitializeJIT()
 
 int MergeModulesAndPrint()
 {
-	
+	auto contextManager = ContextManager::getInstance();
+	auto context = contextManager->getContext();
+
+	auto moduleManager = ModuleManager::getInstance(context);
+	auto& module = moduleManager->getModule("cussinJIT");
+
+	llvm::Linker linker(*module);
+
+	// Link other modules as needed
+	// Example: linker.linkInModule(otherModule.get());
+
+	module->print(errs(), nullptr);
+
+	return 0;
+	/*
 	llvm::Linker linker(*TheModule);
 
 	for (auto& module : scopeManager.getAllModules()) {
@@ -142,6 +182,7 @@ int MergeModulesAndPrint()
 	TheModule->print(errs(), nullptr);
 
 	return 0;
+	*/
 }
 
 int ObjectCodeGen()

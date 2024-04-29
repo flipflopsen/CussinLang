@@ -1,7 +1,7 @@
 #include "logger.h"
 
 void LogError(const char* loc, const char* Str) {
-	fprintf(stderr, "[%s-ERROR] %s\n", Str);
+	fprintf(stderr, "[%s-ERROR] %s\n",loc , Str);
 }
 
 Value* LogErrorV(const char* Str) {

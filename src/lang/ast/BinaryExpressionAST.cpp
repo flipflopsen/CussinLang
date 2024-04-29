@@ -2,9 +2,11 @@
 #include "headers/VariableExpressionAST.h"
 #include "headers/CodegenVisitor.h"
 #include "../../llvmstuff/codegen.h"
+#include "../../llvmstuff/ScopeManager.h"
 
 Value* BinaryExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
 	fprintf(stderr, "[CODEGEN] Performing code generation for BinaryExprAST.\n");
 
 	CodegenVisitor visitor;
@@ -20,7 +22,7 @@ Value* BinaryExprAST::codegen()
 		if (!Val)
 			return nullptr;
 
-		Value* Variable = scopeManager.getVariableFromCurrentScope(LHSE->getName());
+		Value* Variable = scopeManager.getVariable(true, LHSE->getName());
 		if (!Variable)
 			return LogErrorV("Unknown variable name.");
 

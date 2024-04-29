@@ -4,12 +4,14 @@
 
 Function *FunctionAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for FunctionAST.\n");
 
 	// Transfer ownership of the prototype to the FunctionProtos map, but keep a
 	// reference to it for use below.
 	auto& P = *Proto;
-	scopeManager.addFunctionToCurrentScope(P.getName(), std::move(Proto));
+	scopeManager.addFunction(true, P.getName(), std::move(Proto));
 	Function* TheFunction = getFunction(P.getName());
 
 	if (!TheFunction)
@@ -17,7 +19,6 @@ Function *FunctionAST::codegen()
 
 	if (P.isBinaryOp())
 		BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence();
-
 
 
 	// Create a new basic block in the function
@@ -38,7 +39,7 @@ Function *FunctionAST::codegen()
 
 		// Add arguments to variable symbol table.
 		//symbolTable.addVariable(std::string(Arg.getName()), Alloca);
-		scopeManager.addVariableToCurrentScope(std::string(Arg.getName()), Alloca);
+		scopeManager.addVariable(true, std::string(Arg.getName()), Alloca);
 
 
 		//NamedValues[std::string(Arg.getName())] = &Arg;
@@ -58,7 +59,7 @@ Function *FunctionAST::codegen()
 			{
 				LogError("Caught some codegen-fn error because accept returned nullptr");
 				TheFunction->eraseFromParent();
-				scopeManager.removeFunctionFromScope(true, P.getName());
+				scopeManager.removeFunction(true, P.getName());
 				return nullptr;
 			}
 		}
@@ -66,11 +67,23 @@ Function *FunctionAST::codegen()
 		{
 			LogError("Caught some codegen-fn error (IN ELSE) because accept returned nullptr ");
 			TheFunction->eraseFromParent();
-			scopeManager.removeFunctionFromScope(true, P.getName());
+			scopeManager.removeFunction(true, P.getName());
 			return nullptr;
 		}
 	}
 
+	if (P.getReturnType() == DT_VOID)
+	{
+		Builder->CreateRetVoid();
+	}
+	/*
+	auto type = TheFunction->getFunctionType()->getReturnType();
+
+	if (type == nullptr) 
+	{
+		Builder->CreateRetVoid();
+	}
+	*/
 	// Finish off the function.
 	printf("[CODEGEN] Finishing off function!\n");
 	if (Builder != nullptr)

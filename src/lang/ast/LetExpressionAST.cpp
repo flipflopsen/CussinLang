@@ -4,6 +4,8 @@
 
 Value* LetExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for LetAST.\n");
 
 	CodegenVisitor visitor;
@@ -37,11 +39,11 @@ Value* LetExprAST::codegen()
 		Builder->CreateStore(InitVal, Alloca);
 
 		//OldBindings.push_back(symbolTable.getVariable(VarName));
-		OldBindings.push_back(scopeManager.getVariableFromCurrentScope(VarName));
+		OldBindings.push_back(scopeManager.getVariable(true, VarName));
 
 		// Remember this binding.
 		//symbolTable.addVariable(VarName, Alloca);
-		scopeManager.addVariableToCurrentScope(VarName, Alloca);
+		scopeManager.addVariable(true, VarName, Alloca);
 	}
 	// Codegen the body, now that all vars are in scope.
 	if (Body == nullptr)
@@ -54,7 +56,7 @@ Value* LetExprAST::codegen()
 
 	// Pop all our variables from scope.
 	for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
-		scopeManager.addVariableToCurrentScope(VarNames[i].first, OldBindings[i]);
+		scopeManager.addVariable(true, VarNames[i].first, OldBindings[i]);
 
 	// Return the body computation.
 	return BodyVal;

@@ -4,6 +4,8 @@
 
 Value* ForExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for ForAST.\n");
 
 	CodegenVisitor visitor;
@@ -32,8 +34,8 @@ Value* ForExprAST::codegen()
 	Builder->SetInsertPoint(LoopBB);
 
 
-	AllocaInst* OldVal = scopeManager.getVariableFromCurrentScope(VarName);
-	scopeManager.addVariableToCurrentScope(VarName, Alloca);
+	AllocaInst* OldVal = scopeManager.getVariable(true, VarName);
+	scopeManager.addVariable(true, VarName, Alloca);
 
 
 	// Emit the body of the loop.  This, like any other expr, can change the
@@ -88,11 +90,11 @@ Value* ForExprAST::codegen()
 	// Restore the unshadowed variable.
 	if (OldVal)
 		//symbolTable.addVariable(VarName, OldVal);
-		scopeManager.addVariableToCurrentScope(VarName, OldVal);
+		scopeManager.addVariable(true, VarName, OldVal);
 	else
 		//TODO
 		//symbolTable.removeVariable(VarName);
-		scopeManager.removeVariableFromCurrentScope(VarName);
+		scopeManager.removeVariable(true, VarName);
 
 	// for expr always returns 0.0.
 	//TODO: Int64Ty bruh

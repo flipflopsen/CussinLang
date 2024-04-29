@@ -4,6 +4,8 @@
 
 Value* IfExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	CodegenVisitor visitor;
 	Value* CondV = Cond->accept(&visitor);
 

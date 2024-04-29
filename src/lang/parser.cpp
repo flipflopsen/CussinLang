@@ -397,15 +397,20 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	if (!is_extern && Kind == 0)
 	{
 		if (CurTok != TokenType_RETSTMT)
-		return LogErrorP("Expected '->' in prototype");
+		{
+			//return LogErrorP("Expected '->' in prototype");
+			ReturnType = DT_VOID;
+		}
+		else
+		{
+			Token tok = getNextToken(); // eat '->'
 
-		Token tok = getNextToken(); // eat '->'
+			if (CurTok != TokenType_DT)
+				return LogErrorP("Expected valid return type (i8/i32/i64/double) in prototype");
+			ReturnType = EvaluateDataTypeOfToken(0);
 
-		if (CurTok != TokenType_DT)
-			return LogErrorP("Expected valid return type (i8/i32/i64/double) in prototype");
-		ReturnType = EvaluateDataTypeOfToken(0);
-
-		getNextToken(); // eat up the return type;
+			getNextToken(); // eat up the return type;
+		}
 	}
 
 	// Verify right number of names for operator.
