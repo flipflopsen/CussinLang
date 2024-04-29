@@ -6,7 +6,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 
-class ContextManager {
+class ContextManager 
+{
 private:
     static std::shared_ptr<ContextManager> instance;
     std::shared_ptr<llvm::LLVMContext> context;
@@ -14,14 +15,17 @@ private:
     ContextManager() : context(std::make_shared<llvm::LLVMContext>()) {}
 
 public:
-    static std::shared_ptr<ContextManager> getInstance() {
-        if (!instance) {
+    static std::shared_ptr<ContextManager> getInstance() 
+    {
+        if (!instance) 
+        {
             instance = std::shared_ptr<ContextManager>(new ContextManager());
         }
         return instance;
     }
 
-    std::shared_ptr<llvm::LLVMContext> getContext() {
+    std::shared_ptr<llvm::LLVMContext> getContext() 
+    {
         return context;
     }
 };

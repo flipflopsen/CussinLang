@@ -38,21 +38,22 @@ Value* BinaryExprAST::codegen()
 
 	//Todo: compare types of L and R and do error handling with casting or sth.
 
-	switch (Op) {
-	case '+':
-		return Builder->CreateAdd(L, R, "addtmp");
-	case '-':
-		return Builder->CreateSub(L, R, "subtmp");
-	case '*':
-		return Builder->CreateMul(L, R, "multmp");
-	case '<':
-		L = Builder->CreateICmpSLT(L, R, "cmptmp");
-		L = Builder->CreateSExt(L, R->getType(), "booltmp");
-		// Convert bool 0/1 to int 0 or 1
-		//return Builder->CreateUIToFP(L, Type::getDoubleTy(*TheContext), "booltmp");
-		return L;
-	default:
-		break;
+	switch (Op) 
+	{
+		case '+':
+			return Builder->CreateAdd(L, R, "addtmp");
+		case '-':
+			return Builder->CreateSub(L, R, "subtmp");
+		case '*':
+			return Builder->CreateMul(L, R, "multmp");
+		case '<':
+			L = Builder->CreateICmpSLT(L, R, "cmptmp");
+			L = Builder->CreateSExt(L, R->getType(), "booltmp");
+			// Convert bool 0/1 to int 0 or 1
+			//return Builder->CreateUIToFP(L, Type::getDoubleTy(*TheContext), "booltmp");
+			return L;
+		default:
+			break;
 	}
 
 	// If it wasn't a builtin binary operator, it must be a user defined one, so emit a call to it.

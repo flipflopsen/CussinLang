@@ -32,10 +32,12 @@ public:
 
     //~ScopeManager() = default; // Use default if no special cleanup needed
 
-    static ScopeManager& getInstance() {
-        std::call_once(_initFlag, []() {
+    static ScopeManager& getInstance() 
+    {
+        std::call_once(_initFlag, []() 
+        {
             _instance.reset(new ScopeManager);
-            });
+        });
         return *_instance;
     }
 

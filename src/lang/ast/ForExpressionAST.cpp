@@ -46,7 +46,8 @@ Value* ForExprAST::codegen()
 
 	// Emit the step value.
 	Value* StepVal = nullptr;
-	if (Step) {
+	if (Step) 
+	{
 		StepVal = Step->accept(&visitor);
 		if (!StepVal)
 			return nullptr;

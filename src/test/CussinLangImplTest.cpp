@@ -5,7 +5,8 @@
 #include "../src/lang/parser.h"
 #include "../src/llvmstuff/codegen.h"
 
-class CussinLangImplTest : public ::testing::Test {
+class CussinLangImplTest : public ::testing::Test 
+{
 protected:
     void SetUp() override {
         InitializeTargets();

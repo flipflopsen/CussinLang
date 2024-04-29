@@ -45,7 +45,8 @@ Module* ModuleVar;
 IRBuilder<>* Builder;
 
 
-Function* getFunction(std::string Name) {
+Function* getFunction(std::string Name)
+{
 	auto& scopeManager = ScopeManager::getInstance();
 	CodegenVisitor visitor;
 
@@ -131,7 +132,8 @@ void InitializeJIT()
 {
 	std::string error;
 	llvm::raw_string_ostream error_os(error);
-	if (llvm::verifyModule(*TheModule, &error_os)) {
+	if (llvm::verifyModule(*TheModule, &error_os)) 
+	{
 		std::cerr << "Module Error: " << error << '\n';
 		TheModule->dump();
 	}
@@ -170,19 +172,6 @@ int MergeModulesAndPrint()
 	module->print(errs(), nullptr);
 
 	return 0;
-	/*
-	llvm::Linker linker(*TheModule);
-
-	for (auto& module : scopeManager.getAllModules()) {
-		if (linker.linkInModule(std::move(module))) {
-			errs() << "Error linking module.\n";
-			return 1;
-		}
-	}
-	TheModule->print(errs(), nullptr);
-
-	return 0;
-	*/
 }
 
 int ObjectCodeGen()
@@ -196,7 +185,8 @@ int ObjectCodeGen()
 	// Print an error and exit if we couldn't find the requested target.
 	// This generally occurs if we've forgotten to initialise the
 	// TargetRegistry or we have a bogus target triple.
-	if (!Target) {
+	if (!Target) 
+	{
 		errs() << Error;
 		return 1;
 	}
@@ -215,7 +205,8 @@ int ObjectCodeGen()
 	std::error_code EC;
 	raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
-	if (EC) {
+	if (EC) 
+	{
 		errs() << "Could not open file: " << EC.message();
 		return 1;
 	}
@@ -251,23 +242,23 @@ Type* GetLLVMTypeFromDataType(DataType* dt)
 {
 	switch(*dt)
 	{
-	case DT_I8:
-		return IntegerType::get(*TheContext, 8);
-	case DT_I32:
-		return IntegerType::get(*TheContext, 32);
-	case DT_I64:
-		return IntegerType::get(*TheContext, 64);
-	case DT_DOUBLE:
-		return Type::getDoubleTy(*TheContext);
-	case DT_FLOAT:
-		return Type::getFloatTy(*TheContext);
-	case DT_VOID:
-		return Type::getVoidTy(*TheContext);
-	case DT_BOOL:
-	case DT_CHAR:
-	case DT_UNKNOWN:
-	default:
-		return nullptr;
+		case DT_I8:
+			return IntegerType::get(*TheContext, 8);
+		case DT_I32:
+			return IntegerType::get(*TheContext, 32);
+		case DT_I64:
+			return IntegerType::get(*TheContext, 64);
+		case DT_DOUBLE:
+			return Type::getDoubleTy(*TheContext);
+		case DT_FLOAT:
+			return Type::getFloatTy(*TheContext);
+		case DT_VOID:
+			return Type::getVoidTy(*TheContext);
+		case DT_BOOL:
+		case DT_CHAR:
+		case DT_UNKNOWN:
+		default:
+			return nullptr;
 	}
 }
 
@@ -277,22 +268,22 @@ Value* GetNumValueFromDataType(DataType* dt, double Val)
 
 	switch (*dt)
 	{
-	case DT_I8:
-		return ConstantInt::get(*TheContext, APInt(8, Val));
-	case DT_I32:
-		return ConstantInt::get(*TheContext, APInt(32, Val));
-	case DT_I64:
-		return ConstantInt::get(*TheContext, APInt(64, Val));
-	case DT_DOUBLE:
-		return ConstantFP::get(*TheContext, APFloat(Val));
-	case DT_FLOAT:
-		return ConstantFP::get(*TheContext, APFloat(Val));
-	case DT_VOID:
-	case DT_BOOL:
-	case DT_CHAR:
-	case DT_UNKNOWN:
-	default:
-		return nullptr;
+		case DT_I8:
+			return ConstantInt::get(*TheContext, APInt(8, Val));
+		case DT_I32:
+			return ConstantInt::get(*TheContext, APInt(32, Val));
+		case DT_I64:
+			return ConstantInt::get(*TheContext, APInt(64, Val));
+		case DT_DOUBLE:
+			return ConstantFP::get(*TheContext, APFloat(Val));
+		case DT_FLOAT:
+			return ConstantFP::get(*TheContext, APFloat(Val));
+		case DT_VOID:
+		case DT_BOOL:
+		case DT_CHAR:
+		case DT_UNKNOWN:
+		default:
+			return nullptr;
 	}
 
 }

@@ -604,90 +604,90 @@ char const* TokenTypeToString(TokenType type)
 {
 	switch (type)
 	{
-	case TokenType_IDENTIFIER:
-		return "Identifier";
-	case TokenType_ENUM:
-		return "Datastruct";
-	case TokenType_CONST:
-	case TokenType_SHORT:
-	case TokenType_UNSIGNED:
-		return "Modifier";
-	case TokenType_DIGIT:
-	case TokenType_DT:
-	case TokenType_FLOAT:
-	case TokenType_STRING:
-	case TokenType_BOOL:
-		return "Literal";
-	case TokenType_PLUS:
-	case TokenType_MINUS:
-	case TokenType_TIMES:
-	case TokenType_SLASH:
-	case TokenType_PERIOD:
-	case TokenType_EQL:
-	case TokenType_NOT:
-	case TokenType_LSS:
-	case TokenType_GRT:
-	case TokenType_LEQ:
-	case TokenType_GEQ:
-	case TokenType_IN:
-	case TokenType_AND:
-	case TokenType_OR:
-	case TokenType_XOR:
-	case TokenType_IS:
-		return "Operator";
-	case TokenType_LPAREN:
-	case TokenType_RPAREN:
-	case TokenType_LBRACK:
-	case TokenType_RBRACK:
-	case TokenType_LBRACE:
-	case TokenType_RBRACE:
-	case TokenType_SEMICOLON:
-	case TokenType_COMMA:
-	case TokenType_BECOMES:
-	case TokenType_COLON:
-		return "Separator";
-	case TokenType_FN:
-	case TokenType_IF:
-	case TokenType_THEN:
-	case TokenType_ELIF:
-	case TokenType_ELSE:
-	case TokenType_DO:
-	case TokenType_WHILE:
-	case TokenType_FOR:
-	case TokenType_FIN:
-	case TokenType_FORE:
-	case TokenType_FOREB:
-	case TokenType_TRY:
-	case TokenType_TRYAROUND:
-	case TokenType_GRASP:
-	case TokenType_FINALLY:
-	case TokenType_GOTO:
-	case TokenType_RETURN:
-	case TokenType_NEW:
-	case TokenType_LET:
-	case TokenType_DELETE:
-	case TokenType_NULL:
-	case TokenType_EXTERN:
-	case TokenType_SCOPE:
-	case TokenType_SCOPED:
-	case TokenType_PERSISTENT:
-	case TokenType_STRUCT:
-		return "Keyword";
-	case TokenType_BINARY:
-	case TokenType_UNARY:
-		return "Keyword for UserDefinedOperators";
-	case TokenType_RETSTMT:
-		return "Return specification strongly";
-	case TokenType_EOF:
-		return "EndOfStream";
-	case TokenType_UNKNOWN:
-	default: return "unknown";
+		case TokenType_IDENTIFIER:
+			return "Identifier";
+		case TokenType_ENUM:
+			return "Datastruct";
+		case TokenType_CONST:
+		case TokenType_SHORT:
+		case TokenType_UNSIGNED:
+			return "Modifier";
+		case TokenType_DIGIT:
+		case TokenType_DT:
+		case TokenType_FLOAT:
+		case TokenType_STRING:
+		case TokenType_BOOL:
+			return "Literal";
+		case TokenType_PLUS:
+		case TokenType_MINUS:
+		case TokenType_TIMES:
+		case TokenType_SLASH:
+		case TokenType_PERIOD:
+		case TokenType_EQL:
+		case TokenType_NOT:
+		case TokenType_LSS:
+		case TokenType_GRT:
+		case TokenType_LEQ:
+		case TokenType_GEQ:
+		case TokenType_IN:
+		case TokenType_AND:
+		case TokenType_OR:
+		case TokenType_XOR:
+		case TokenType_IS:
+			return "Operator";
+		case TokenType_LPAREN:
+		case TokenType_RPAREN:
+		case TokenType_LBRACK:
+		case TokenType_RBRACK:
+		case TokenType_LBRACE:
+		case TokenType_RBRACE:
+		case TokenType_SEMICOLON:
+		case TokenType_COMMA:
+		case TokenType_BECOMES:
+		case TokenType_COLON:
+			return "Separator";
+		case TokenType_FN:
+		case TokenType_IF:
+		case TokenType_THEN:
+		case TokenType_ELIF:
+		case TokenType_ELSE:
+		case TokenType_DO:
+		case TokenType_WHILE:
+		case TokenType_FOR:
+		case TokenType_FIN:
+		case TokenType_FORE:
+		case TokenType_FOREB:
+		case TokenType_TRY:
+		case TokenType_TRYAROUND:
+		case TokenType_GRASP:
+		case TokenType_FINALLY:
+		case TokenType_GOTO:
+		case TokenType_RETURN:
+		case TokenType_NEW:
+		case TokenType_LET:
+		case TokenType_DELETE:
+		case TokenType_NULL:
+		case TokenType_EXTERN:
+		case TokenType_SCOPE:
+		case TokenType_SCOPED:
+		case TokenType_PERSISTENT:
+		case TokenType_STRUCT:
+			return "Keyword";
+		case TokenType_BINARY:
+		case TokenType_UNARY:
+			return "Keyword for UserDefinedOperators";
+		case TokenType_RETSTMT:
+			return "Return specification strongly";
+		case TokenType_EOF:
+			return "EndOfStream";
+		case TokenType_UNKNOWN:
+		default:
+			return "unknown";
 	}
 }
 
 void DebugPrintTokenArray(TokenArray token_array)
 {
-	//TODO: Print token type enum
 	for (int i = 0; i < token_array.count; i++)
 	{
 		printf("[LEXER] Token %i: %s - %s \n", i, TokenTypeToString(token_array.tokens[i].type),

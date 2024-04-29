@@ -10,8 +10,7 @@ Function *FunctionAST::codegen()
 
 	printf("[CODEGEN] Performing code generation for FunctionAST.\n");
 
-	// Transfer ownership of the prototype to the FunctionProtos map, but keep a
-	// reference to it for use below.
+	// Transfer ownership of the prototype to the FunctionProtos map, but keep a reference to it for use below.
 	auto& P = *Proto;
 	scopeManager.addFunction(true, P.getName(), std::move(Proto));
 	Function* TheFunction = getFunction(P.getName());
@@ -27,10 +26,8 @@ Function *FunctionAST::codegen()
 	BasicBlock* basicBlock = BasicBlock::Create(*TheContext, "entry", TheFunction);
 
 	scopeManager.getBuilderOfCurrentScope()->SetInsertPoint(basicBlock);
-	//Builder->SetInsertPoint(basicBlock);
 
 	// Record the function arguments in the NamedValues map.
-
 	int ctr = 0;
 	for (auto& Arg : TheFunction->args())
 	{
@@ -39,15 +36,11 @@ Function *FunctionAST::codegen()
 		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str(), Arg.getType());
 
 		// Store the initial value into the alloca.
-		//Builder->CreateStore(&Arg, Alloca);
 		scopeManager.getBuilderOfCurrentScope()->CreateStore(&Arg, Alloca);
 
 		// Add arguments to variable symbol table.
-		//symbolTable.addVariable(std::string(Arg.getName()), Alloca);
 		scopeManager.addVariable(true, std::string(Arg.getName()), Alloca);
 
-
-		//NamedValues[std::string(Arg.getName())] = &Arg;
 		ctr++;
 	}
 	printf("[CODEGEN] Added %d NamedValues.\n", ctr);
@@ -57,7 +50,7 @@ Function *FunctionAST::codegen()
 	bool containsRet = std::any_of(Body.begin(), Body.end(), [](const std::unique_ptr<ExprAST>& x) {
 		// Check if x is a ReturnExprAST by dynamic_casting to ReturnExprAST*
 		return dynamic_cast<const ReturnExprAST*>(x.get()) != nullptr;
-		});
+	});
 
 	// Generate the code for each expression in the body
 	for (const auto& Expr : Body)
@@ -89,20 +82,11 @@ Function *FunctionAST::codegen()
 		//Builder->CreateRetVoid();
 		scopeManager.getBuilderOfCurrentScope()->CreateRetVoid();
 	}
-	/*
-	auto type = TheFunction->getFunctionType()->getReturnType();
 
-	if (type == nullptr) 
-	{
-		Builder->CreateRetVoid();
-	}
-	*/
 	// Finish off the function.
 	printf("[CODEGEN] Finishing off function!\n");
 	if (Builder != nullptr)
 	{
-		//Builder->CreateRetVoid();
-
 		if (TheFunction != nullptr)
 		{
 			if (!verifyFunction(*TheFunction))
