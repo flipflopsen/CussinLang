@@ -34,8 +34,9 @@ const std::vector<std::string> inputs =
 	//"extern printd(x);",
 	//"fn test_extern_with_dp(x) -> i64 { printd(x) : x = 4 : printd(x);"
 
-	//"fn fib(x) -> i64 {if (x < 3) then 1 else fib(x-1) + fib(x-2);"
-	
+	//"fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x - x) + fib(x - 2) };",
+	"fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x - 1) + fib(x - 2);};",
+	//"fib(10);"
 	//"fn unary!(v) { if v then 0 else 1; }",
  
 	//"fn test_negation(a) -> i64 { !a; 
@@ -59,7 +60,7 @@ const std::vector<std::string> inputs =
 
 	//"fn test_addition(x: i32, y: i32) -> i32 {x + y;}",
 	//"test_addition(2,3);"
-	"fn test(x: i32) {1 + 2;}"
+	//"fn test(x: i32) {1 + 2;}"
 };
 
 void MainLoop()

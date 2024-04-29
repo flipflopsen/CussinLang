@@ -1,5 +1,7 @@
 #include "headers/FunctionExpressionAST.h"
+#include "headers/ReturnExpressionAST.h"
 #include "headers/CodegenVisitor.h"
+#include <typeinfo>
 #include "../../llvmstuff/codegen.h"
 
 Function *FunctionAST::codegen()
@@ -24,18 +26,21 @@ Function *FunctionAST::codegen()
 	// Create a new basic block in the function
 	BasicBlock* basicBlock = BasicBlock::Create(*TheContext, "entry", TheFunction);
 
-	Builder->SetInsertPoint(basicBlock);
+	scopeManager.getBuilderOfCurrentScope()->SetInsertPoint(basicBlock);
+	//Builder->SetInsertPoint(basicBlock);
 
 	// Record the function arguments in the NamedValues map.
 
 	int ctr = 0;
 	for (auto& Arg : TheFunction->args())
 	{
+		Arg.setName(Arg.getName());
 		// Create an alloca for this variable.
 		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str(), Arg.getType());
 
 		// Store the initial value into the alloca.
-		Builder->CreateStore(&Arg, Alloca);
+		//Builder->CreateStore(&Arg, Alloca);
+		scopeManager.getBuilderOfCurrentScope()->CreateStore(&Arg, Alloca);
 
 		// Add arguments to variable symbol table.
 		//symbolTable.addVariable(std::string(Arg.getName()), Alloca);
@@ -72,9 +77,15 @@ Function *FunctionAST::codegen()
 		}
 	}
 
-	if (P.getReturnType() == DT_VOID)
+	bool containsRet = std::any_of(Body.begin(), Body.end(), [](const std::unique_ptr<ExprAST>& x) {
+		// Check if x is a ReturnExprAST by dynamic_casting to ReturnExprAST*
+		return dynamic_cast<const ReturnExprAST*>(x.get()) != nullptr;
+		});
+
+	if (P.getReturnType() == DT_VOID && !containsRet)
 	{
-		Builder->CreateRetVoid();
+		//Builder->CreateRetVoid();
+		scopeManager.getBuilderOfCurrentScope()->CreateRetVoid();
 	}
 	/*
 	auto type = TheFunction->getFunctionType()->getReturnType();

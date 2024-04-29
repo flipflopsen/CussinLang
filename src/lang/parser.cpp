@@ -465,6 +465,7 @@ std::unique_ptr<PrototypeAST> Parser::ParseExtern()
 
 std::unique_ptr<ExprAST> Parser::ParseIfExpr()
 {
+	printf("[PARSER-TLE] Starting to parse IF-Expr AST!\n");
 	getNextToken();
 
 	auto Condition = ParseExpression();
@@ -476,6 +477,13 @@ std::unique_ptr<ExprAST> Parser::ParseIfExpr()
 	getNextToken();
 
 	auto Then = ParseExpression();
+	
+	/*
+	if (CurTok == TokenType_SEMICOLON && PeekNextToken().type != TokenType_RBRACE)
+	{
+		getNextToken(); // eat up ; after return in then
+	}
+	*/
 
 	if (CurTok != TokenType_ELSE)
 		return LogError("Expected 'else'");
@@ -658,6 +666,7 @@ std::unique_ptr<ExprAST> Parser::ParseReturnExpr()
 {
 	getNextToken(); // Eat the "return" token
 	auto Expr = ParseExpression();
+	auto lookahead = PeekNextToken();
 	return std::make_unique<ReturnExprAST>(std::move(Expr));
 }
 
