@@ -701,7 +701,6 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 	return statements;
 }
 
-
 std::unique_ptr<ScopeExprAST> Parser::ParseScopeExpr()
 {
 	bool persistent = false;
@@ -729,6 +728,11 @@ std::unique_ptr<ScopeExprAST> Parser::ParseScopeExpr()
 		LogError("Expected '}' at the end of a scope!");
 
 	return std::make_unique<ScopeExprAST>(scopeIdentifier, persistent, std::move(body));
+}
+
+std::unique_ptr<ExprAST> ParseImplicitBraceScope()
+{
+
 }
 
 // Handlers

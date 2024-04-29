@@ -67,6 +67,7 @@ private:
 	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
 	std::unique_ptr<ExprAST> ParseUnary();
 	std::vector<std::unique_ptr<ExprAST>> ParseBlock();
+	std::unique_ptr<ExprAST> ParseImplicitBraceScope();
 
 	// Static compiled Handlers
 	void HandleExtern();

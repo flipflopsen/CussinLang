@@ -22,6 +22,7 @@ class ExprAST
 public:
 	virtual ~ExprAST() = default;
 	virtual llvm::Value* accept(Visitor* visitor) = 0;
+	int ScopeLevel = 0; // 0 is global
 
 };
 

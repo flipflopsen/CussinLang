@@ -23,6 +23,8 @@ private:
     SymbolTable* _currentScope = nullptr;
     SymbolTable* _superScope = nullptr;
 
+    signed int _tempScopeDepth = 0; // 0 is global
+
     ScopeManager() = default; // Private constructor for singleton
 
 public:
@@ -71,6 +73,8 @@ public:
     void addStruct(bool currentScope, const std::string& name, StructType* type, const std::string& scope = "GLOBAL");
     StructType* getStruct(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL");
     void removeStruct(bool currentScope, const std::string& name, const std::string& scope = "GLOBAL");
+
+    int getTempScopeDepth();
 
 private:
     void handleScopeCreationError(const std::string& name, const std::string& message);

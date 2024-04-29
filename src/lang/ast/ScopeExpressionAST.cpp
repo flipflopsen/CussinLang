@@ -32,7 +32,6 @@ Value* ScopeExprAST::codegen()
 	// Generate the code for each expression in the body
 	for (auto& Expr : Body)
 	{
-
 		if (FunctionAST* funcAST = dynamic_cast<FunctionAST*>(Expr.get()))
 		{
 			function.reset(static_cast<FunctionAST*>(funcAST));

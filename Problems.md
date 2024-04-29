@@ -11,5 +11,6 @@ on a logical basis this isn't a problem, still this is unnecessairy overhead. Co
 
 2. Structs, no further comments
 3. ScopeManager and scoping in general, needs a HUGE refactor, rethinking and everything. Normally scoping isn't hard but I think I was a little drunk doing the ScopeManager at first. This stage of dev for scoping is kind of pathetic and desperatly needs changes.
+3.1 Let's be real, scoping is nearly ok, still we need (temporary) scopes, starting with LBRACE and ending with RBRACE. ('scoped' || 'persistend scope') keywords are only for explicit scope delcaration to escape out of mandatory (brace induced) scopes.
 4. 'Syntactical Sugar' -> more freedom with syntax (allow loosely typed dt's etc.)
 5. Higher salary, lol.

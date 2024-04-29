@@ -122,6 +122,7 @@ void ScopeManager::enterGlobalScope()
 
 void ScopeManager::enterTempScope()
 {
+    _tempScopeDepth++;
     auto contextManager = ContextManager::getInstance();
     auto context = contextManager->getContext();
 
@@ -144,6 +145,7 @@ void ScopeManager::exitTempScope()
         return;
     }
     _modules.pop_back();  // Remove the last module, effectively destroying the temporary scope
+    _tempScopeDepth--;
     _currentScope = _superScope;
 }
 
@@ -233,7 +235,6 @@ void ScopeManager::removeFunction(bool currentScope, const std::string& name, co
     */
 }
 
-
 void ScopeManager::addStruct(bool currentScope, const std::string& name, StructType* type, const std::string& scope)
 {
     if (currentScope)
@@ -275,6 +276,11 @@ void ScopeManager::removeStruct(bool currentScope, const std::string& name, cons
 
     _persistentScopes[scope].removeStruct(name);
     */
+}
+
+int ScopeManager::getTempScopeDepth()
+{
+    return _tempScopeDepth;
 }
 
 // Error handling
