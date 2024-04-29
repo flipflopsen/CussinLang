@@ -55,7 +55,7 @@ Value* ForExprAST::codegen()
 	{
 		// If not specified, use 1
 		//TODO: 64 bit int bruh
-		StepVal = ConstantInt::get(*TheContext, APInt(64, 1));
+		StepVal = ConstantInt::get(*TheContext, APInt(32, 1));
 	}
 
 	// Compute the end condition.
@@ -75,7 +75,7 @@ Value* ForExprAST::codegen()
 
 	// Convert condition to a bool by comparing non-equal to 0.0.
 	EndCond = Builder->CreateICmpNE(
-		EndCond, ConstantInt::get(*TheContext, APInt(64, 0)), "loopcond");
+		EndCond, ConstantInt::get(*TheContext, APInt(32, 0)), "loopcond");
 
 	// Create the "after loop" block and insert it.
 	//BasicBlock* LoopEndBB = Builder->GetInsertBlock();
@@ -98,5 +98,5 @@ Value* ForExprAST::codegen()
 
 	// for expr always returns 0.0.
 	//TODO: Int64Ty bruh
-	return Constant::getNullValue(Type::getInt64Ty(*TheContext));
+	return Constant::getNullValue(Type::getInt32Ty(*TheContext));
 }

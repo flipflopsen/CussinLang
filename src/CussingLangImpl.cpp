@@ -35,7 +35,7 @@ const std::vector<std::string> inputs =
 	//"fn test_extern_with_dp(x) -> i64 { printd(x) : x = 4 : printd(x);"
 
 	//"fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x - x) + fib(x - 2) };",
-	"fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x - 1) + fib(x - 2);};",
+	//"fn fib(x: i32) -> i32 {if (x < 3) then 1 else fib(x - 1) + fib(x - 2);};",
 	//"fib(10);"
 	//"fn unary!(v) { if v then 0 else 1; }",
  
@@ -44,8 +44,8 @@ const std::vector<std::string> inputs =
 	//"fn binary> 10 (LHS RHS) { RHS < LHS; }"
 
 	//"extern putchard(char);",
-	//"fn test_extern_print(n) -> i64 { for i = 1, i < n, 1 f in putchard(42); }",
-	//"test_extern_print(100)"
+	"fn test_extern_print(n: i32) -> i32 { for i: i32 = 1, i < n, 1 fin 1; };",
+	"test_extern_print(100);"
 
 	//"extern putchard(char);",
 	//"fn foo(a: i32, b: i32) -> i32 { if a then foo(a,b) else putchard(a); }"

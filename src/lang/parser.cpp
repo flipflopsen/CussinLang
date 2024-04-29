@@ -357,6 +357,8 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 			getNextToken();
 		}
 		break;
+	case TokenType_EOF:
+		return nullptr;
 	}
 
 
@@ -511,7 +513,7 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	if (CurTok != TokenType_COLON)
 		return LogError("expected ':' after loop var");
 	getNextToken(); // eat colon
-	auto LoopVarDT = EvaluateDataTypeOfToken(1);
+	auto LoopVarDT = EvaluateDataTypeOfToken(0);
 	getNextToken(); // eat datatype
 
 	if (CurTok != TokenType_EQL)
@@ -541,7 +543,7 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	}
 
 	if (CurTok != TokenType_FIN)
-		return LogError("expected 'fin' after for");
+		return LogError("expected 'in' after for");
 	getNextToken();  // eat 'fin'.
 
 	auto Body = ParseExpression();

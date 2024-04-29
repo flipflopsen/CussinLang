@@ -30,7 +30,7 @@ public:
     ScopeManager(ScopeManager&&) = delete;
     ScopeManager& operator=(ScopeManager&&) = delete;
 
-    ~ScopeManager() = default; // Use default if no special cleanup needed
+    //~ScopeManager() = default; // Use default if no special cleanup needed
 
     static ScopeManager& getInstance() {
         std::call_once(_initFlag, []() {

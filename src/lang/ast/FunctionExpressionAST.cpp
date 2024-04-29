@@ -54,6 +54,11 @@ Function *FunctionAST::codegen()
 
 	CodegenVisitor visitor;
 
+	bool containsRet = std::any_of(Body.begin(), Body.end(), [](const std::unique_ptr<ExprAST>& x) {
+		// Check if x is a ReturnExprAST by dynamic_casting to ReturnExprAST*
+		return dynamic_cast<const ReturnExprAST*>(x.get()) != nullptr;
+		});
+
 	// Generate the code for each expression in the body
 	for (const auto& Expr : Body)
 	{
@@ -67,6 +72,8 @@ Function *FunctionAST::codegen()
 				scopeManager.removeFunction(true, P.getName());
 				return nullptr;
 			}
+			if (!containsRet)
+				Builder->CreateRet(RetVal);
 		}
 		else
 		{
@@ -76,11 +83,6 @@ Function *FunctionAST::codegen()
 			return nullptr;
 		}
 	}
-
-	bool containsRet = std::any_of(Body.begin(), Body.end(), [](const std::unique_ptr<ExprAST>& x) {
-		// Check if x is a ReturnExprAST by dynamic_casting to ReturnExprAST*
-		return dynamic_cast<const ReturnExprAST*>(x.get()) != nullptr;
-		});
 
 	if (P.getReturnType() == DT_VOID && !containsRet)
 	{

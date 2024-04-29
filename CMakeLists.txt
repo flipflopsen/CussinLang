@@ -131,7 +131,7 @@ target_link_libraries(core_lib PUBLIC ${LLVM_LIBS})
 # Tests
 #add_test(NAME TestExternPutchard COMMAND UnitTests)
 #add_test(NAME TestMethodDeclaration COMMAND UnitTests)
-#add_test(NAME TestFunctionCall COMMAND UnitTests)
+add_test(NAME TestIfElse COMMAND UnitTests)
 add_test(NAME TestArithmetic COMMAND UnitTests)
 
 # Optional: Add compile options or definitions if needed

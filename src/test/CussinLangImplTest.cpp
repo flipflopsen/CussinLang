@@ -5,7 +5,7 @@
 #include "../src/lang/parser.h"
 #include "../src/llvmstuff/codegen.h"
 
-class CussingLangImplTest : public ::testing::Test {
+class CussinLangImplTest : public ::testing::Test {
 protected:
     void SetUp() override {
         InitializeTargets();
@@ -59,9 +59,18 @@ TEST_F(CussingLangImplTest, TestFunctionCall)
 }
 */
 
-TEST_F(CussingLangImplTest, TestArithmetic)
+TEST_F(CussinLangImplTest, TestArithmetic)
 {
-    char input[] = R"(fn test() -> i32 { return 1 + 2; }; test();)";
+    char input[] = R"(fn test() -> i32 { return 1 + 2; };)";
+
+    EXPECT_EQ(ExecuteCode(input), 0);
+    EXPECT_EQ(MergeModulesAndPrint(), 0);
+    EXPECT_EQ(ObjectCodeGen(), 0);
+}
+
+TEST_F(CussinLangImplTest, TestIfElse)
+{
+    char input[] = R"(fn fib(x: i32) -> i32 {if (x < 3) then 1 else 2;};)";
 
     EXPECT_EQ(ExecuteCode(input), 0);
     EXPECT_EQ(MergeModulesAndPrint(), 0);
