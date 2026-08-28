@@ -26,6 +26,7 @@
 #include "llvm/TargetParser/Host.h"
 //#include "llvm/ExecutionEngine/MCJIT.h"
 #include <llvm/Linker/Linker.h>
+#include "../utils/DebugInfoGenerator.h"
 
 #include <codecvt>
 #include <iostream>
@@ -122,7 +123,7 @@ void InitializeJIT()
 
 	engineBuilder
 		.setErrorStr(&error)
-		.setOptLevel(llvm::CodeGenOpt::Aggressive)
+		.setOptLevel(llvm::CodeGenOptLevel::Aggressive)
 		.setEngineKind(llvm::EngineKind::JIT);
 
 	engine = engineBuilder.create();
@@ -144,6 +145,7 @@ int MergeModulesAndPrint()
 	return 0;
 }
 
+/*
 int ObjectCodeGen()
 {
 	auto TargetTriple = sys::getDefaultTargetTriple();
@@ -180,7 +182,7 @@ int ObjectCodeGen()
 	}
 
 	legacy::PassManager pass;
-	auto FileType = CGFT_ObjectFile;
+	auto FileType = llvm::CodeGenFileType::ObjectFile;
 
 	if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
 		errs() << "TheTargetMachine can't emit a file of this type";
@@ -194,7 +196,129 @@ int ObjectCodeGen()
 
 	return 0;
 }
+*/
 
+void CompileWithDebugInfo() {
+	InitializeModule(true);
+
+	// Create debug info generator
+	DebugInfoGenerator DbgGen;
+	DbgGen.InitializeDebugInfo(TheModule.get(), "output.o", "./");
+
+	// Example: Create a function with debug info
+	Function* MyFunc = /* ... create your function ... */nullptr;
+	DISubprogram* SP = DbgGen.CreateFunctionDebugInfo(MyFunc, 10);  // Line 10
+
+	// Example: Add debug location to instructions
+	Instruction* SomeInst = /* ... create instruction ... */nullptr;
+	DbgGen.InsertDebugLocation(SomeInst, 15, 5, SP);  // Line 15, Col 5
+
+	// Example: Create local variable debug info
+	DIType* IntType = DbgGen.CreateBasicTypeDebugInfo("int", 32,
+		dwarf::DW_ATE_signed);
+	DILocalVariable* Var = DbgGen.CreateVariableDebugInfo(SP, "x", 12, IntType);
+
+	// Example: Associate alloca with variable
+	AllocaInst* Alloca = /* ... create alloca ... */nullptr;
+	DIExpression* Expr = DbgGen.CreateExpression();
+	DILocation* Loc = DILocation::get(*TheContext, 12, 0, SP);
+	DbgGen.InsertDeclare(Alloca, Var, Expr, Loc, /* InsertBefore */ nullptr);
+
+	// IMPORTANT: Finalize before generating object code
+	DbgGen.Finalize();
+
+	// Now generate object file
+	ObjectCodeGen();
+}
+
+
+int ObjectCodeGen()
+{
+	// Merge all modules into TheModule
+	llvm::Linker linker(*TheModule);
+
+	for (auto& module : scopeManager.getAllModules()) {
+		if (linker.linkInModule(std::move(module))) {
+			errs() << "Error linking module.\n";
+			return 1;
+		}
+	}
+
+	// Add module-level metadata flags for debug information
+	TheModule->addModuleFlag(Module::Warning, "Debug Info Version",
+		DEBUG_METADATA_VERSION);
+	TheModule->addModuleFlag(Module::Warning, "Dwarf Version", 4);
+
+	// Optional: Add producer information
+	TheModule->setSourceFileName("cussin_source.cu");
+
+	// Verify the module before emitting
+	std::string error;
+	llvm::raw_string_ostream error_os(error);
+	if (llvm::verifyModule(*TheModule, &error_os)) {
+		std::cerr << "Module verification error: " << error << '\n';
+		TheModule->print(errs(), nullptr);
+		return 1;
+	}
+
+	// Initialize target information
+	auto TargetTriple = sys::getDefaultTargetTriple();
+	TheModule->setTargetTriple(TargetTriple);
+
+	std::string Error;
+	auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+
+	if (!Target) {
+		errs() << Error;
+		return 1;
+	}
+
+	auto CPU = sys::getHostCPUName();  // Use actual CPU instead of "generic"
+	auto Features = "";
+
+	TargetOptions opt;
+
+	// Configure target options for better debugging
+	opt.EmitCallSiteInfo = true;  // Enable call site info for better stack traces
+	opt.SupportsDebugEntryValues = true;  // Support entry values in DWARF
+	opt.EnableDebugEntryValues = true;
+
+	auto RM = std::optional<Reloc::Model>(Reloc::PIC_);  // Position-independent code
+	auto TheTargetMachine = Target->createTargetMachine(
+		TargetTriple, CPU, Features, opt, RM,
+		std::nullopt, CodeGenOptLevel::Default);
+
+	TheModule->setDataLayout(TheTargetMachine->createDataLayout());
+
+	auto Filename = "output.o";
+	std::error_code EC;
+	raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
+
+	if (EC) {
+		errs() << "Could not open file: " << EC.message();
+		return 1;
+	}
+
+	legacy::PassManager pass;
+	auto FileType = llvm::CodeGenFileType::ObjectFile;
+
+	if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+		errs() << "TheTargetMachine can't emit a file of this type";
+		return 1;
+	}
+
+	pass.run(*TheModule);
+	dest.flush();
+
+	outs() << "Wrote " << Filename << " with debug information\n";
+
+	// Optional: Print statistics about what was included
+	outs() << "Module contains " << TheModule->getFunctionList().size()
+		<< " functions, " << TheModule->getNumNamedValues()
+		<< " nr of globals\n";
+
+	return 0;
+}
 void InitializeTargets()
 {
 	llvm::InitializeNativeTarget();
@@ -213,7 +337,7 @@ Type* GetLLVMTypeFromDataType(DataType* dt)
 	case DT_I8:
 		return IntegerType::get(*TheContext, 8);
 	case DT_I32:
-		return IntegerType::get(*TheContext, 32);
+		return IntegerType::get(*TheContext, 64);
 	case DT_I64:
 		return IntegerType::get(*TheContext, 64);
 	case DT_DOUBLE:
@@ -222,6 +346,8 @@ Type* GetLLVMTypeFromDataType(DataType* dt)
 		return Type::getFloatTy(*TheContext);
 	case DT_VOID:
 		return Type::getVoidTy(*TheContext);
+	case DT_STRING:
+		return PointerType::getInt8Ty(*TheContext);
 	case DT_BOOL:
 	case DT_CHAR:
 	case DT_UNKNOWN:
@@ -239,16 +365,16 @@ Value* GetNumValueFromDataType(DataType* dt, double Val)
 	case DT_I8:
 		return ConstantInt::get(*TheContext, APInt(8, Val));
 	case DT_I32:
-		return ConstantInt::get(*TheContext, APInt(32, Val));
+		return ConstantInt::get(*TheContext, APInt(64, Val));
 	case DT_I64:
 		return ConstantInt::get(*TheContext, APInt(64, Val));
 	case DT_DOUBLE:
 		return ConstantFP::get(*TheContext, APFloat(Val));
 	case DT_FLOAT:
 		return ConstantFP::get(*TheContext, APFloat(Val));
+	case DT_CHAR:
 	case DT_VOID:
 	case DT_BOOL:
-	case DT_CHAR:
 	case DT_UNKNOWN:
 	default:
 		return nullptr;

@@ -39,12 +39,12 @@ const std::vector<std::string> inputs =
 	//"extern putchard(char);",
 	//"fn printstar(n) -> i64 { for i = 1, i < n, 1 fin putchard(42);",
 	//"printstar(100)"
-	//"fn foo(a, b) -> i64 { if a then foo(a,b) else putchard(a); }"
+	//"fn foo(a: i64, b: i64) -> i64 { if a then foo(a,b) else putchard(a); }",
 	//"fn bar(a) -> i64 { foo(a, 2) + bar(1331); }",
-	//"fn test(x) -> i64 { (1 + 2) + x; }",
-	//"fn test(x) -> i64 { (1 + 2 + x); (3 + 4 + x); }",
-	//"fn test2(x) -> i64 { (1+2+x)*(x+(1+2)); }"
-	"fn test(x) -> i64 {4 + 5;}"
+	//"fn test(x: i64) -> i64 { (1 + 2) + x; }",
+	//"fn test(x: i64) -> i64 { x = (1 + 2 + x); return (3 + 4 + x); }",
+	//"fn test2(x: i64) -> i64 { return ((1+2+x)*(x+(1+2))); }"
+	"fn test(x: str) -> str {x = \'lul123\'; return x;}"
 };
 
 void MainLoop()
@@ -57,7 +57,7 @@ void MainLoop()
 		char input[8192];
 
 		if (ctr < inputs.size())
-			strcpy(input, inputs[ctr].c_str());
+			strncpy(input, inputs[ctr].c_str(), sizeof(inputs[ctr].c_str()) - 1);
 		else
 			GetInput(input);
 
@@ -73,7 +73,7 @@ void MainLoop()
 		auto parser = Parser(token_array);
 		parser.Parse(jit);
 
-		//ObjectCodeGen();
+		ObjectCodeGen();
 
 		ctr++;
 		//DeleteTokens(token_array);
@@ -81,7 +81,8 @@ void MainLoop()
 	
 	MergeModulesAndPrint();
 	printf("Printed!\n");
-	ObjectCodeGen();
+	//ObjectCodeGen();
+	CompileWithDebugInfo();
 	printf("Code generated!\n");
 }
 

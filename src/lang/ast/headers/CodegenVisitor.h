@@ -10,6 +10,7 @@ class CodegenVisitor : public Visitor
 {
 public:
 	llvm::Value* visit(NumberExprAST* ast) override;
+	llvm::Value* visit(StringExprAST* ast) override;
 	llvm::Value* visit(VariableExprAST* ast) override;
 	llvm::Value* visit(BinaryExprAST* ast) override;
 	llvm::Value* visit(CallExprAST* ast) override;

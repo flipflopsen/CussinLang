@@ -1,0 +1,20 @@
+# Normalize line endings for text sources.
+# The tracked C++ sources currently use CRLF (Windows/MSVC toolchain), while
+# CMakePresets.json also defines Linux/macOS configure presets, so text
+# normalization avoids cross-platform line-ending churn.
+* text=auto
+
+*.cpp text
+*.h text
+*.md text
+*.json text
+*.cmake text
+CMakeLists.txt text
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.vcxproj.user text eol=crlf
+
+*.dll binary
