@@ -17,7 +17,8 @@ Value* CallExprAST::codegen()
 		return LogErrorV("Incorrect # arguments passed");
 
 	std::vector<Value*> ArgsV;
-	for (unsigned i = 0, e = Args.size(); i != e; ++i) {
+	for (unsigned i = 0, e = Args.size(); i != e; ++i) 
+	{
 		ArgsV.push_back(Args[i]->accept(&visitor));
 		if (!ArgsV.back())
 			return nullptr;

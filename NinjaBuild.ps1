@@ -3,6 +3,7 @@ param(
     [switch]$Generate,
     [switch]$Build,
     [switch]$Run,
+    [switch]$Test,
     [Parameter(ParameterSetName='FullChainRun')]
     [switch]$FullChainRun,
     [Parameter(ParameterSetName='OutputDir')]
@@ -49,24 +50,31 @@ if ($Help) {
     Write-Host "  -Build        Build the generated files"
     Write-Host "  -Run          Run the application"
     Write-Host "  -OutputDir    Specify output directory (overrides default)"
+    Write-Host "  -Test         Run GTests"
     Write-Host "  -Help         Show this help"
     Write-Host "  (Default)     Generate build files, build, and run"
     exit
 }
 
-Write-Host "Parameters: Generate=$Generate Build=$Build Run=$Run OutputDir=$OutputDir Help=$Help"  
+Write-Host "Parameters: Generate=$Generate Build=$Build Run=$Run Test=$Test OutputDir=$OutputDir Help=$Help"  
 
-if ($FullChainRun -Or $Generate -Or !$Generate -And !$Build -And !$Run) {
+if ($FullChainRun -Or $Generate -Or !$Generate -And !$Build -And !$Run -And !$Test) {
     Write-Host "Generating build files..."
-    & $cmakePath -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=B:\Programs\vcpkg\scripts\buildsystems\vcpkg.cmake 
+    & $cmakePath -G "Ninja" -B $BuildDir -DCMAKE_TOOLCHAIN_FILE=B:\Programs\vcpkg\scripts\buildsystems\vcpkg.cmake -S .
 }
 
-if ($FullChainRun -Or $Build -Or !$Generate -And !$Build -And !$Run) {
+if ($FullChainRun -Or $Build -Or !$Generate -And !$Build -And !$Run -And !$Test) {
     Write-Host "Building the project..."
-    & $cmakePath --build . --config Debug --parallel 24
+    & $cmakePath --build $BuildDir --config Debug --parallel 24
 }
 
-if ($FullChainRun -Or $Run -Or !$Generate -And !$Build -And !$Run) {
+if ($Test) {
+    Write-Host "Building and running tests..."
+    & $cmakePath --build $BuildDir --target UnitTests --config Debug
+    & "$BuildDir\UnitTests.exe"
+}
+
+if ($FullChainRun -Or $Run -And !$Test) {
     Write-Host "Running the application..."
     Start-Process -FilePath ".\$BuildDir\CussingLangImpl.exe"
-} 
+}

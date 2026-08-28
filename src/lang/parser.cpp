@@ -11,7 +11,8 @@ void Parser::Parse(bool jit)
 {
 	if (jit)
 	{
-		while (Position < Count) {
+		while (Position < Count) 
+		{
 			getNextToken();
 			switch (CurTok) {
 			case TokenType_EOF:
@@ -34,9 +35,11 @@ void Parser::Parse(bool jit)
 	}
 	else
 	{
-		while (Position < Count && CurTok != TokenType_EOF) {
+		while (Position < Count && CurTok != TokenType_EOF) 
+		{
 			getNextToken();
 			fprintf(stderr, "[PARSER-ENTRY] Current token is %d\n", CurTok);
+
 			switch (CurTok) {
 			case TokenType_SEMICOLON:
 				printf("Got semicolon !\n");
@@ -60,7 +63,8 @@ void Parser::Parse(bool jit)
 }
 
 
-std::unique_ptr<ExprAST> Parser::ParseExpression() {
+std::unique_ptr<ExprAST> Parser::ParseExpression() 
+{
 	auto LHS = ParseUnary();
 	if (!LHS)
 		return nullptr;
@@ -75,54 +79,52 @@ std::unique_ptr<ExprAST> Parser::ParsePrimary()
 	if (CurTok == TokenType_IDENTIFIER && PeekNextToken().type == TokenType_LPAREN)
 		return ParseCallExpr();
 	
-	switch (CurTok) {
-	case TokenType_SEMICOLON:
-		getNextToken(); // Consume the semicolon
-		printf("[PARSER] Parsing of Expression is done!\n");
-		return ParseExpression();
-	case TokenType_STRUCT:
-		printf("[PARSER] Parsing Struct Expr!\n");
-		return ParseStructExpr();
-	case TokenType_PERSISTENT:
-	case TokenType_SCOPE:
-		printf("[PARSER] Parsing Scope Expression\n");
-		return ParseScopeExpr();
-	case TokenType_IDENTIFIER:
-		printf("[PARSER] Parsing Identifier Expression\n");
-		return ParseIdentifierExpr();
-	case TokenType_DIGIT:
-		printf("[PARSER] Parsing number Expression\n");
-		return ParseNumberExpr();
-	case TokenType_STRING:
-		printf("[PARSER] Parsing string Expression\n");
-		return ParseStringExpr();
-	case TokenType_RBRACE:
-		printf("[PARSER] Parsing of Body is done!\n");
-		return nullptr;
-	case TokenType_LPAREN:
-		printf("[PARSER] Parsing Paren Expression\n");
-		return ParseParenExpr();
-	case TokenType_IF:
-		printf("[PARSER] Parsing IF Expression\n");
-		return ParseIfExpr();
-	case TokenType_FOR:
-		printf("[PARSER] Parsing FOR Expression\n");
-		return ParseForExpr();
-	case TokenType_LET:
-		printf("[PARSER] Parsing LET Expression\n");
-		return ParseLetExpr();
-	case TokenType_RETURN:
-		printf("[PARSER] Parsing return Expression\n");
-		return ParseReturnExpr();
-	case TokenType_EOF:
-		printf("[PARSER] Parsing of File is done!\n");
-		return nullptr;
-	case TokenType_COMMA:
-		printf("[PARSER] Got comma in ParsePrimary!\n");
-		return nullptr;
-	default:
-		printf("[PARSER] Token type of current token: %d\n", CurTok);
-		return LogError("Unknown token when expecting an expression");
+	switch (CurTok) 
+	{
+		case TokenType_SEMICOLON:
+			getNextToken(); // Consume the semicolon
+			printf("[PARSER] Parsing of Expression is done!\n");
+			return ParseExpression();
+		case TokenType_STRUCT:
+			printf("[PARSER] Parsing Struct Expr!\n");
+			return ParseStructExpr();
+		case TokenType_PERSISTENT:
+		case TokenType_SCOPE:
+			printf("[PARSER] Parsing Scope Expression\n");
+			return ParseScopeExpr();
+		case TokenType_IDENTIFIER:
+			printf("[PARSER] Parsing Identifier Expression\n");
+			return ParseIdentifierExpr();
+		case TokenType_DIGIT:
+			printf("[PARSER] Parsing number Expression\n");
+			return ParseNumberExpr();
+		case TokenType_RBRACE:
+			printf("[PARSER] Parsing of Body is done!\n");
+			return nullptr;
+		case TokenType_LPAREN:
+			printf("[PARSER] Parsing Paren Expression\n");
+			return ParseParenExpr();
+		case TokenType_IF:
+			printf("[PARSER] Parsing IF Expression\n");
+			return ParseIfExpr();
+		case TokenType_FOR:
+			printf("[PARSER] Parsing FOR Expression\n");
+			return ParseForExpr();
+		case TokenType_LET:
+			printf("[PARSER] Parsing LET Expression\n");
+			return ParseLetExpr();
+		case TokenType_RETURN:
+			printf("[PARSER] Parsing return Expression\n");
+			return ParseReturnExpr();
+		case TokenType_EOF:
+			printf("[PARSER] Parsing of File is done!\n");
+			return nullptr;
+		case TokenType_COMMA:
+			printf("[PARSER] Got comma in ParsePrimary!\n");
+			return nullptr;
+		default:
+			printf("[PARSER] Token type of current token: %d\n", CurTok);
+			return LogError("Unknown token when expecting an expression");
 	};
 }
 
@@ -158,14 +160,13 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 			return std::make_unique<VariableExprAST>(id_name, KnownVars[id_name]);
 		if (lookahead.type == TokenType_COLON)
 		{
-			//LogError("Expected ':' after identifier!");
 			fprintf(stderr, "[PIDENT] Lookahead type is: %d\n", lookahead.type);
+
 			auto dt = EvaluateDataTypeOfToken(2);
 			KnownVars[id_name] = dt;
 
 			return std::make_unique<VariableExprAST>(id_name, dt);
 		}
-		//return std::make_unique<VariableExprAST>(id_name, EvaluateDataTypeOfToken(2));
 	}
 
 	getNextToken();
@@ -184,46 +185,39 @@ std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 	return ParseCallArgsExpr();
 }
 
-std::unique_ptr<ExprAST> Parser::ParseCallExpr()
+std::unique_ptr<ExprAST> Parser::ParseCallExpr() 
 {
 	std::string IdName = PeekCurrentToken().contents;
-
 	getNextToken();
-
 	std::vector<std::unique_ptr<ExprAST>> Args;
 
-	if (CurTok != TokenType_RPAREN)
+	while (CurTok != TokenType_RPAREN) 
 	{
-		while (true)
+		if (CurTok != TokenType_COMMA) 
 		{
-			if (CurTok != TokenType_COMMA)
+			auto Arg = ParseCallArgsExpr();
+			if (Arg) 
 			{
-				if (auto Arg = ParseCallArgsExpr())
-				{
-					printf("[PARSER-IDENT] Parsed token with val: %d\n", CurTok);
-					Args.push_back(std::move(Arg));
-				}
-				else
-				{
-					if (CurTok == TokenType_RPAREN)
-					{
-						printf("[PARSER-IDENT] Encountered ')' \n");
-						break;
-					}
-
-					if (CurTok != TokenType_LPAREN)
-					{
-						printf("[PARSER-IDENT-ERROR] Failed to parse call for tok %d\n", CurTok);
-						return nullptr;
-					}
-					printf("[PARSER-IDENT-ERROR] Encountered ( in CallParsing\n");
-
-				}
+				printf("[PARSER-IDENT] Parsed token with val: %d\n", CurTok);
+				Args.push_back(std::move(Arg));
 			}
-			getNextToken();
+			else 
+			{
+				if (CurTok == TokenType_RPAREN) 
+				{
+					printf("[PARSER-IDENT] Encountered ')' \n");
+					break;
+				}
+				if (CurTok != TokenType_LPAREN)
+				{
+					printf("[PARSER-IDENT-ERROR] Failed to parse call for tok %d\n", CurTok);
+					return nullptr;
+				}
+				printf("[PARSER-IDENT-ERROR] Encountered ( in CallParsing\n");
+			}
 		}
+		getNextToken();
 	}
-
 	return std::make_unique<CallExprAST>(IdName, std::move(Args));
 }
 
@@ -234,7 +228,7 @@ std::unique_ptr<ExprAST> Parser::ParseCallArgsExpr()
 
 	std::string id_name = PeekCurrentToken().contents;
 
-	auto const lookahead = PeekNextToken();
+	auto lookahead = PeekNextToken();
 
 	if (lookahead.type == TokenType_COMMA || lookahead.type == TokenType_RPAREN)
 	{
@@ -302,7 +296,6 @@ std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<Exp
 
 		if (IsOperator(PeekNextToken().type))
 		{
-
 			getNextToken();
 			int NextPrec = GetTokenPrecedence();
 			if (TokPrec <= NextPrec) {
@@ -318,9 +311,7 @@ std::unique_ptr<ExprAST> Parser::ParseBinOpRHS(int ExprPrec, std::unique_ptr<Exp
 		}
 
 		// Merge LHS/RHS.
-		LHS =
-			std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
-
+		LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
 		return LHS;
 	}
 }
@@ -335,54 +326,56 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	unsigned BinaryPrecedence = 30;
 
 	switch (CurTok) {
-	default:
-		return LogErrorP("Expected function name in prototype");
-	case TokenType_IDENTIFIER:
-		FnName = PeekCurrentToken().contents;
-		Kind = 0;
-		getNextToken();
-		break;
-	case TokenType_UNARY:
-		getNextToken();
-		if (!isascii(CurTok))
-			return LogErrorP("Expected unary operator");
-		FnName = "unary";
-		FnName += (char)CurTok;
-		Kind = 1;
-		getNextToken();
-		break;
-	case TokenType_BINARY:
-		getNextToken();
-		if (!isascii(CurTok))
-			return LogErrorP("Expected binary operator");
-		FnName = "binary";
-		FnName += (char)CurTok;
-		Kind = 2;
-		getNextToken();
-
-		// Read the precedence if present.
-		if (CurTok == TokenType_DIGIT) {
-			auto NumVal = strtoint(PeekCurrentToken().contents);
-			if (NumVal < 1 || NumVal > 100)
-				return LogErrorP("Invalid precedence: must be 1..100");
-			BinaryPrecedence = (unsigned)NumVal;
+		default:
+			return LogErrorP("Expected function name in prototype");
+		case TokenType_IDENTIFIER:
+			FnName = PeekCurrentToken().contents;
+			Kind = 0;
 			getNextToken();
-		}
-		break;
+			break;
+		case TokenType_UNARY:
+			getNextToken();
+			if (!isascii(CurTok))
+				return LogErrorP("Expected unary operator");
+			FnName = "unary";
+			FnName += (char)CurTok;
+			Kind = 1;
+			getNextToken();
+			break;
+		case TokenType_BINARY:
+			getNextToken();
+			if (!isascii(CurTok))
+				return LogErrorP("Expected binary operator");
+			FnName = "binary";
+			FnName += (char)CurTok;
+			Kind = 2;
+			getNextToken();
+
+			// Read the precedence if present.
+			if (CurTok == TokenType_DIGIT) {
+				auto NumVal = strtoint(PeekCurrentToken().contents);
+				if (NumVal < 1 || NumVal > 100)
+					return LogErrorP("Invalid precedence: must be 1..100");
+				BinaryPrecedence = (unsigned)NumVal;
+				getNextToken();
+			}
+			break;
+		case TokenType_EOF:
+			return nullptr;
 	}
 
-
 	printf("[PARSER] FnName for prototype: %s\n", FnName.c_str());
-	DataType ReturnType = DT_VOID;
 
-	//getNextToken();
+	DataType ReturnType = DT_VOID;
 
 	if (CurTok != TokenType_LPAREN)
 		return LogErrorP("Expected '(' in prototype");
 
-	std::vector< std::pair<std::string, DataType>> ArgNames;
+	std::vector<std::pair<std::string, DataType>> ArgNames;
+
 	Token nextToken = getNextToken();
 	auto lookahead = PeekNextToken();
+
 	while (nextToken.type != TokenType_RPAREN)
 	{
 		if (nextToken.type != TokenType_COMMA && nextToken.type != TokenType_DT) 
@@ -409,15 +402,20 @@ std::unique_ptr<PrototypeAST> Parser::ParsePrototype(bool is_extern)
 	if (!is_extern && Kind == 0)
 	{
 		if (CurTok != TokenType_RETSTMT)
-		return LogErrorP("Expected '->' in prototype");
+		{
+			//return LogErrorP("Expected '->' in prototype");
+			ReturnType = DT_VOID;
+		}
+		else
+		{
+			Token tok = getNextToken(); // eat '->'
 
-		Token tok = getNextToken(); // eat '->'
+			if (CurTok != TokenType_DT)
+				return LogErrorP("Expected valid return type (i8/i32/i64/double) in prototype");
+			ReturnType = EvaluateDataTypeOfToken(0);
 
-		if (CurTok != TokenType_DT)
-			return LogErrorP("Expected valid return type (i8/i32/i64/double) in prototype");
-		ReturnType = EvaluateDataTypeOfToken(0);
-
-		getNextToken(); // eat up the return type;
+			getNextToken(); // eat up the return type;
+		}
 	}
 
 	// Verify right number of names for operator.
@@ -437,8 +435,6 @@ std::unique_ptr<FunctionAST> Parser::ParseFnDef()
 	if (CurTok != TokenType_LBRACE)
 		LogError("Expected '{' for function def");
 	fprintf(stderr, "[PARSER] Starting to parse body for %s\n", Tokens.tokens[1].contents);
-
-	//getNextToken(); // eat {
 
 	auto Body = ParseBlock();
 	if (Body.empty())
@@ -472,6 +468,7 @@ std::unique_ptr<PrototypeAST> Parser::ParseExtern()
 
 std::unique_ptr<ExprAST> Parser::ParseIfExpr()
 {
+	printf("[PARSER-TLE] Starting to parse IF-Expr AST!\n");
 	getNextToken();
 
 	auto Condition = ParseExpression();
@@ -507,10 +504,12 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 
 	std::string IdName = PeekCurrentToken().contents;
 	getNextToken();  // eat identifier.
+
 	if (CurTok != TokenType_COLON)
 		return LogError("expected ':' after loop var");
 	getNextToken(); // eat colon
-	auto LoopVarDT = EvaluateDataTypeOfToken(1);
+
+	auto LoopVarDT = EvaluateDataTypeOfToken(0);
 	getNextToken(); // eat datatype
 
 	if (CurTok != TokenType_EQL)
@@ -521,6 +520,7 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	auto Start = ParseExpression();
 	if (!Start)
 		return nullptr;
+
 	if (CurTok != TokenType_COMMA)
 		return LogError("expected ',' after for start value");
 	getNextToken();
@@ -532,7 +532,9 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	// The step value is optional.
 	std::unique_ptr<ExprAST> Step;
 	getNextToken();
-	if (CurTok == TokenType_COMMA) {
+
+	if (CurTok == TokenType_COMMA) 
+	{
 		getNextToken();
 		Step = ParseExpression();
 		if (!Step)
@@ -540,7 +542,7 @@ std::unique_ptr<ExprAST> Parser::ParseForExpr()
 	}
 
 	if (CurTok != TokenType_FIN)
-		return LogError("expected 'fin' after for");
+		return LogError("expected 'in' after for");
 	getNextToken();  // eat 'fin'.
 
 	auto Body = ParseExpression();
@@ -563,6 +565,7 @@ std::unique_ptr<ExprAST> Parser::ParseUnary()
 	getNextToken();
 	if (auto Operand = ParseUnary())
 		return std::make_unique<UnaryExprAST>(Opc, std::move(Operand));
+
 	return nullptr;
 }
 
@@ -646,18 +649,23 @@ std::unique_ptr<ExprAST> Parser::ParseStructExpr()
 	{
 		getNextToken();
 		auto fieldName = PeekCurrentToken().contents;
+
 		getNextToken();
 		getNextToken();
 		auto fieldType = EvaluateDataTypeOfToken(0);
+
 		Fields.push_back(std::pair<std::string, DataType>(fieldName, fieldType));
+
 		if (PeekNextToken().type == TokenType_COMMA)
 			getNextToken();
+
 		if (PeekNextToken().type == TokenType_RBRACE)
 			break;
 	}
-	printf("[PARSER-STRUCT] returning struct with %d fields\n", Fields.size());
+	printf("[PARSER-STRUCT] returning struct with %d fields\n", (int)Fields.size());
 	getNextToken(); // eat }
 	getNextToken(); // prepare next token
+
 	return std::make_unique<StructExprAST>(std::move(name), std::move(Fields));
 }
 
@@ -665,6 +673,7 @@ std::unique_ptr<ExprAST> Parser::ParseReturnExpr()
 {
 	getNextToken(); // Eat the "return" token
 	auto Expr = ParseExpression();
+	auto lookahead = PeekNextToken();
 	return std::make_unique<ReturnExprAST>(std::move(Expr));
 }
 
@@ -701,11 +710,11 @@ std::vector<std::unique_ptr<ExprAST>> Parser::ParseBlock()
 	return statements;
 }
 
-
 std::unique_ptr<ScopeExprAST> Parser::ParseScopeExpr()
 {
 	bool persistent = false;
 	Token lookahead;
+
 	if (CurTok == TokenType_PERSISTENT)
 	{
 		persistent = true;
@@ -720,21 +729,24 @@ std::unique_ptr<ScopeExprAST> Parser::ParseScopeExpr()
 	getNextToken(); // eat 'scope'
 	std::string scopeIdentifier = PeekCurrentToken().contents;
 	getNextToken(); // eat identifier
+
 	auto body = ParseBlock();
 	if (CurTok != TokenType_RBRACE)
 		getNextToken();
 	if (CurTok != TokenType_RBRACE)
 		LogError("Expected '}' at the end of a scope!");
+
 	return std::make_unique<ScopeExprAST>(scopeIdentifier, persistent, std::move(body));
 }
 
-
-
-// Handlers
-
-void Parser::HandleDefinition()
+std::unique_ptr<ExprAST> ParseImplicitBraceScope()
 {
 
+}
+
+// Handlers
+void Parser::HandleDefinition()
+{
 	CodegenVisitor visitor;
 
 	printf("[PARSER-Init] Parsing Definition\n");
@@ -757,7 +769,6 @@ void Parser::HandleDefinition()
 
 void Parser::HandleTopLevelExpression()
 {
-
 	CodegenVisitor visitor;
 
 	printf("[PARSER-Init] Parsing TLE.\n");
@@ -804,33 +815,17 @@ void Parser::HandleScopeExpression()
 	if (ScopeAST) {
 		auto* FnIR = ScopeAST->accept(&visitor);
 		fprintf(stderr, "Parsed Scope Expression\n");
-		
 	}
-
 }
 
-void Parser::HandleExternJIT()
-{
-	
-}
-void Parser::HandleDefinitionJIT()
-{
-	
-}
-void Parser::HandleTopLevelExpressionJIT()
-{
-	
-}
+void Parser::HandleExternJIT() {}
+void Parser::HandleDefinitionJIT() {}
+void Parser::HandleTopLevelExpressionJIT() {}
 
-
-void DebugAST()
-{
-	
-}
+void DebugAST() {}
 
 
 // Getter for Tokens buf
-
 Token Parser::getNextToken()
 {
 	Token tok = Tokens.tokens[Position];
@@ -858,7 +853,6 @@ int Parser::GetTokenPrecedence()
 		return -1;
 	return TokPrec;
 }
-
 
 // Debug
 void Parser::outputVals()
@@ -950,26 +944,25 @@ DataType Parser::EvaluateDataTypeOfToken(int tokenPos)
 	return DT_UNKNOWN;
 }
 
-
 bool Parser::IsOperator(int type)
 {
 	switch (type)
 	{
-	case TokenType_PLUS:
-	case TokenType_MINUS:
-	case TokenType_TIMES:
-	case TokenType_SLASH:
-	case TokenType_PERIOD:
-	case TokenType_EQL:
-	case TokenType_NOT:
-	case TokenType_LSS:
-	case TokenType_GRT:
-	case TokenType_LEQ:
-	case TokenType_GEQ:
-	case TokenType_MOD:
-	case TokenType_EXCL:
-		return true;
-	default:
-		return false;
+		case TokenType_PLUS:
+		case TokenType_MINUS:
+		case TokenType_TIMES:
+		case TokenType_SLASH:
+		case TokenType_PERIOD:
+		case TokenType_EQL:
+		case TokenType_NOT:
+		case TokenType_LSS:
+		case TokenType_GRT:
+		case TokenType_LEQ:
+		case TokenType_GEQ:
+		case TokenType_MOD:
+		case TokenType_EXCL:
+			return true;
+		default:
+			return false;
 	}
 }

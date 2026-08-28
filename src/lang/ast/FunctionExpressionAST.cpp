@@ -1,15 +1,18 @@
 #include "headers/FunctionExpressionAST.h"
+#include "headers/ReturnExpressionAST.h"
 #include "headers/CodegenVisitor.h"
+#include <typeinfo>
 #include "../../llvmstuff/codegen.h"
 
 Function *FunctionAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for FunctionAST.\n");
 
-	// Transfer ownership of the prototype to the FunctionProtos map, but keep a
-	// reference to it for use below.
+	// Transfer ownership of the prototype to the FunctionProtos map, but keep a reference to it for use below.
 	auto& P = *Proto;
-	scopeManager.addFunctionToCurrentScope(P.getName(), std::move(Proto));
+	scopeManager.addFunction(true, P.getName(), std::move(Proto));
 	Function* TheFunction = getFunction(P.getName());
 
 	if (!TheFunction)
@@ -19,34 +22,35 @@ Function *FunctionAST::codegen()
 		BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence();
 
 
-
 	// Create a new basic block in the function
 	BasicBlock* basicBlock = BasicBlock::Create(*TheContext, "entry", TheFunction);
 
-	Builder->SetInsertPoint(basicBlock);
+	scopeManager.getBuilderOfCurrentScope()->SetInsertPoint(basicBlock);
 
 	// Record the function arguments in the NamedValues map.
-
 	int ctr = 0;
 	for (auto& Arg : TheFunction->args())
 	{
+		Arg.setName(Arg.getName());
 		// Create an alloca for this variable.
 		AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName().str(), Arg.getType());
 
 		// Store the initial value into the alloca.
-		Builder->CreateStore(&Arg, Alloca);
+		scopeManager.getBuilderOfCurrentScope()->CreateStore(&Arg, Alloca);
 
 		// Add arguments to variable symbol table.
-		//symbolTable.addVariable(std::string(Arg.getName()), Alloca);
-		scopeManager.addVariableToCurrentScope(std::string(Arg.getName()), Alloca);
+		scopeManager.addVariable(true, std::string(Arg.getName()), Alloca);
 
-
-		//NamedValues[std::string(Arg.getName())] = &Arg;
 		ctr++;
 	}
 	printf("[CODEGEN] Added %d NamedValues.\n", ctr);
 
 	CodegenVisitor visitor;
+
+	bool containsRet = std::any_of(Body.begin(), Body.end(), [](const std::unique_ptr<ExprAST>& x) {
+		// Check if x is a ReturnExprAST by dynamic_casting to ReturnExprAST*
+		return dynamic_cast<const ReturnExprAST*>(x.get()) != nullptr;
+	});
 
 	// Generate the code for each expression in the body
 	for (const auto& Expr : Body)
@@ -58,25 +62,30 @@ Function *FunctionAST::codegen()
 			{
 				LogError("Caught some codegen-fn error because accept returned nullptr");
 				TheFunction->eraseFromParent();
-				scopeManager.removeFunctionFromScope(true, P.getName());
+				scopeManager.removeFunction(true, P.getName());
 				return nullptr;
 			}
+			if (!containsRet)
+				Builder->CreateRet(RetVal); // This here doesn't work as expected.
 		}
 		else
 		{
 			LogError("Caught some codegen-fn error (IN ELSE) because accept returned nullptr ");
 			TheFunction->eraseFromParent();
-			scopeManager.removeFunctionFromScope(true, P.getName());
+			scopeManager.removeFunction(true, P.getName());
 			return nullptr;
 		}
+	}
+
+	if (P.getReturnType() == DT_VOID && !containsRet)
+	{
+		scopeManager.getBuilderOfCurrentScope()->CreateRetVoid();
 	}
 
 	// Finish off the function.
 	printf("[CODEGEN] Finishing off function!\n");
 	if (Builder != nullptr)
 	{
-		//Builder->CreateRetVoid();
-
 		if (TheFunction != nullptr)
 		{
 			if (!verifyFunction(*TheFunction))

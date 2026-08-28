@@ -1,5 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
+
 #include <map>
 
 #include "../utils/Datatypes.h"
@@ -68,6 +69,7 @@ private:
 	std::unique_ptr<ExprAST> ParseStringExpr();
 	std::unique_ptr<ExprAST> ParseUnary();
 	std::vector<std::unique_ptr<ExprAST>> ParseBlock();
+	std::unique_ptr<ExprAST> ParseImplicitBraceScope();
 
 	// Static compiled Handlers
 	void HandleExtern();

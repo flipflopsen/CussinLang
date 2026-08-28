@@ -35,6 +35,8 @@ public:
 	}
 
 	unsigned getBinaryPrecedence() const { return Precedence; }
+
+	DataType getReturnType() const { return returnType; }
 };
 
 #endif

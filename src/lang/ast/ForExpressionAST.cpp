@@ -4,6 +4,8 @@
 
 Value* ForExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for ForAST.\n");
 
 	CodegenVisitor visitor;
@@ -32,8 +34,8 @@ Value* ForExprAST::codegen()
 	Builder->SetInsertPoint(LoopBB);
 
 
-	AllocaInst* OldVal = scopeManager.getVariableFromCurrentScope(VarName);
-	scopeManager.addVariableToCurrentScope(VarName, Alloca);
+	AllocaInst* OldVal = scopeManager.getVariable(true, VarName);
+	scopeManager.addVariable(true, VarName, Alloca);
 
 
 	// Emit the body of the loop.  This, like any other expr, can change the
@@ -44,7 +46,8 @@ Value* ForExprAST::codegen()
 
 	// Emit the step value.
 	Value* StepVal = nullptr;
-	if (Step) {
+	if (Step) 
+	{
 		StepVal = Step->accept(&visitor);
 		if (!StepVal)
 			return nullptr;
@@ -53,7 +56,7 @@ Value* ForExprAST::codegen()
 	{
 		// If not specified, use 1
 		//TODO: 64 bit int bruh
-		StepVal = ConstantInt::get(*TheContext, APInt(64, 1));
+		StepVal = ConstantInt::get(*TheContext, APInt(32, 1));
 	}
 
 	// Compute the end condition.
@@ -73,7 +76,7 @@ Value* ForExprAST::codegen()
 
 	// Convert condition to a bool by comparing non-equal to 0.0.
 	EndCond = Builder->CreateICmpNE(
-		EndCond, ConstantInt::get(*TheContext, APInt(64, 0)), "loopcond");
+		EndCond, ConstantInt::get(*TheContext, APInt(32, 0)), "loopcond");
 
 	// Create the "after loop" block and insert it.
 	//BasicBlock* LoopEndBB = Builder->GetInsertBlock();
@@ -88,13 +91,13 @@ Value* ForExprAST::codegen()
 	// Restore the unshadowed variable.
 	if (OldVal)
 		//symbolTable.addVariable(VarName, OldVal);
-		scopeManager.addVariableToCurrentScope(VarName, OldVal);
+		scopeManager.addVariable(true, VarName, OldVal);
 	else
 		//TODO
 		//symbolTable.removeVariable(VarName);
-		scopeManager.removeVariableFromCurrentScope(VarName);
+		scopeManager.removeVariable(true, VarName);
 
 	// for expr always returns 0.0.
 	//TODO: Int64Ty bruh
-	return Constant::getNullValue(Type::getInt64Ty(*TheContext));
+	return Constant::getNullValue(Type::getInt32Ty(*TheContext));
 }

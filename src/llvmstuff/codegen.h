@@ -28,6 +28,9 @@
 
 #include "../utils/Datatypes.h"
 #include "../utils/logger.h"
+#include "ModuleManager.h"
+#include "ContextManager.h"
+#include "ScopeManager.h"
 
 extern void InitializeModule(bool optimizations);
 extern void InitializeJIT();

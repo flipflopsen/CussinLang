@@ -4,13 +4,15 @@
 
 Value* IfExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	CodegenVisitor visitor;
 	Value* CondV = Cond->accept(&visitor);
 
 	if (!CondV)
 		return nullptr;
 
-	CondV = Builder->CreateICmpNE(CondV, ConstantInt::get(*TheContext, APInt(64, 0)), "ifcond");
+	CondV = Builder->CreateICmpNE(CondV, ConstantInt::get(*TheContext, APInt(32, 0)), "ifcond");
 
 	Function* TheFunction = Builder->GetInsertBlock()->getParent();
 
@@ -51,7 +53,7 @@ Value* IfExprAST::codegen()
 	Builder->SetInsertPoint(MergeBB);
 
 	PHINode* PN =
-		Builder->CreatePHI(Type::getInt64Ty(*TheContext), 2, "iftmp");
+		Builder->CreatePHI(Type::getInt32Ty(*TheContext), 2, "iftmp");
 
 	PN->addIncoming(ThenV, ThenBB);
 	PN->addIncoming(ElseV, ElseBB);

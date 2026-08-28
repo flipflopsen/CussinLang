@@ -4,8 +4,10 @@
 
 Value* VariableExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	printf("[CODEGEN] Performing code generation for VariableExprAST.\n");
-	AllocaInst* A = scopeManager.getVariableFromCurrentScope(Name);
+	AllocaInst* A = scopeManager.getVariable(true, Name);
 
 	if (!A)
 		LogErrorV("Unknown variable name");

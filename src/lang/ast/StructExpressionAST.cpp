@@ -4,6 +4,8 @@
 
 Value* StructExprAST::codegen()
 {
+	auto& scopeManager = ScopeManager::getInstance();
+
 	llvm::StructType* structType = llvm::StructType::create(*TheContext, getTypeName());
 
 	std::vector<llvm::Type*> elementTypes;
@@ -31,7 +33,7 @@ Value* StructExprAST::codegen()
 		ctr++;
 	}
 
-	scopeManager.addStructToCurrentScope(getTypeName(), structType);
+	scopeManager.addStruct(true, getTypeName(), structType);
 
 	TheModule->print(errs(), nullptr);
 
