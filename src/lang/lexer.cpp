@@ -234,7 +234,7 @@ Token GetToken(Tokenizer& tokenizer)
 		//NOTE: should everything in the quotes be a single token, 
 		// or each quote symbol is a token,
 		// and every token inbetween can be interpreted as a quote
-	case '"':
+	case '\'':
 	{
 		//We need to skip the " and start copying from the next char
 		tokenizer.location++;
@@ -242,7 +242,7 @@ Token GetToken(Tokenizer& tokenizer)
 		token.type = TokenType_STRING;
 		char* start_loc = tokenizer.location;
 
-		while (tokenizer.location[0] != '"')
+		while (tokenizer.location[0] != '\'')
 		{
 			tokenizer.location++;
 			token.length++;
@@ -351,6 +351,11 @@ Token GetToken(Tokenizer& tokenizer)
 				break;
 			}
 			if (strcompare(token.contents, "i64"))
+			{
+				token.type = TokenType_DT;
+				break;
+			}
+			if (strcompare(token.contents, "str"))
 			{
 				token.type = TokenType_DT;
 				break;

@@ -37,6 +37,7 @@ extern void InitializeJIT();
 extern int ObjectCodeGen();
 extern void InitializeTargets();
 extern int MergeModulesAndPrint();
+extern void CompileWithDebugInfo();
 
 extern llvm::Value* GetNumValueFromDataType(DataType* dt, double Val = 0);
 extern llvm::Type* GetLLVMTypeFromDataType(DataType* dt);

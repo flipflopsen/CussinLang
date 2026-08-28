@@ -11,9 +11,17 @@
 #include "headers/ScopeExpressionAST.h"
 #include "headers/StructExpressionAST.h"
 #include "headers/UnaryExpressionAST.h"
+#include "headers/StringExpressionAST.h"
 #include "headers/VariableExpressionAST.h"
 
 Value* CodegenVisitor::visit(NumberExprAST* ast)
+{
+	//printf("[CODEGEN] CodegenVisitor is visiting NumberExprAST\n");
+	auto ret = ast->codegen();
+	//TheModule->print(errs(), nullptr);
+	return ret;
+}
+Value* CodegenVisitor::visit(StringExprAST* ast)
 {
 	//printf("[CODEGEN] CodegenVisitor is visiting NumberExprAST\n");
 	auto ret = ast->codegen();

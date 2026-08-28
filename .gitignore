@@ -1,3 +1,19 @@
 .vs/
 out/
 NinjaBuild/
+
+# CMake / Ninja build artifacts
+CMakeFiles/
+.ninja_deps
+.ninja_log
+build.ninja
+cmake_install.cmake
+
+# Generated Visual Studio project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Vendor/runtime binaries pulled in by vcpkg at build time
+*.dll

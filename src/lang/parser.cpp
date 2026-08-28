@@ -139,6 +139,15 @@ std::unique_ptr<ExprAST> Parser::ParseNumberExpr()
 	return std::move(result);
 }
 
+std::unique_ptr<ExprAST> Parser::ParseStringExpr()
+{
+	auto const token = PeekCurrentToken().contents;
+	fprintf(stderr, "[PARSER-NR] Parsing string expression for token: %s\n", token);
+	//Todo: figure out datatype of number, maybe with casting or sth, rn it defaults to i32
+	auto result = std::make_unique<StringExprAST>(token);
+	return std::move(result);
+}
+
 std::unique_ptr<ExprAST> Parser::ParseIdentifierExpr()
 {
 	std::string id_name = PeekCurrentToken().contents;
@@ -885,7 +894,7 @@ DataType Parser::EvaluateDataTypeOfToken(int tokenPos)
 	}
 
 	fprintf(stderr, "Got token %s\n", token.contents);
-
+	
 	if (strcompare(token.contents, "struct"))
 	{
 		printf("Returning i32\n");
@@ -907,6 +916,22 @@ DataType Parser::EvaluateDataTypeOfToken(int tokenPos)
 		printf("Returning i64\n");
 		return DT_I64;
 	}
+
+	if (strcompare(token.contents, "str"))
+	{
+		printf("Returning str\n");
+		return DT_STRING;
+	}
+
+	if (token.type == TokenType_STRING)
+	{
+		return DT_STRING;
+	}
+
+	/*
+	if (strcompare(token.contents, "char"))
+		return DT_CHAR;
+	*/
 	if (strcompare(token.contents, "double"))
 		return DT_DOUBLE;
 	if (strcompare(token.contents, "bool"))

@@ -16,6 +16,7 @@
 #include "ast/headers/PrototypeExpressionAST.h"
 #include "ast/headers/ReturnExpressionAST.h"
 #include "ast/headers/ScopeExpressionAST.h"
+#include "ast/headers/StringExpressionAST.h"
 #include "ast/headers/StructExpressionAST.h"
 #include "ast/headers/UnaryExpressionAST.h"
 #include "ast/headers/VariableExpressionAST.h"
@@ -65,6 +66,7 @@ private:
 	std::unique_ptr<PrototypeAST> ParsePrototype(bool is_extern);
 	std::unique_ptr<FunctionAST> ParseFnDef();
 	std::unique_ptr<FunctionAST> ParseTopLevelExpr();
+	std::unique_ptr<ExprAST> ParseStringExpr();
 	std::unique_ptr<ExprAST> ParseUnary();
 	std::vector<std::unique_ptr<ExprAST>> ParseBlock();
 	std::unique_ptr<ExprAST> ParseImplicitBraceScope();

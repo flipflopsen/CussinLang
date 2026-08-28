@@ -1,15 +1,15 @@
-#ifndef NUMBERAST_H
-#define NUMBERAST_H
+#ifndef STRINGAST_H
+#define STRINGAST_H
 
 #include "ExpressionAST.h"
 #include "Visitor.h"
 
-class NumberExprAST : public ExprAST {
-	double Val;
+class StringExprAST : public ExprAST {
+	const char* Val;
 	DataType dt;
 
 public:
-	NumberExprAST(double val, DataType dt = DT_I64) : Val(val), dt(dt) {}
+	StringExprAST(const char* val, DataType dt = DT_STRING) : Val(val), dt(dt) {}
 
 	llvm::Value* accept(Visitor* visitor) override {
 		return visitor->visit(this);

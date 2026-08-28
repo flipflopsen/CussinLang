@@ -5,6 +5,7 @@
 #include "llvm/IR/IRBuilder.h"
 
 class NumberExprAST;
+class StringExprAST;
 class VariableExprAST;
 class BinaryExprAST;
 class CallExprAST;
@@ -26,6 +27,7 @@ class Visitor
 public:
 	virtual ~Visitor() = default;
 	virtual Value* visit(NumberExprAST* ast) = 0;
+	virtual Value* visit(StringExprAST* ast) = 0;
 	virtual Value* visit(VariableExprAST* ast) = 0;
 	virtual Value* visit(BinaryExprAST* ast) = 0;
 	virtual Value* visit(CallExprAST* ast) = 0;
