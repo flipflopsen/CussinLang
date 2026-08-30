@@ -79,9 +79,3 @@ cmake --build out
 - `CMakeLists.txt` lists several source files that are not currently tracked by git and only exist (or are missing entirely) in the local working tree: `src/utils/memethods.h`/`src/utils/memethods.cpp` (present only at the repository root, not under `src/utils/`), `src/lang/ast/StringExpressionAST.cpp`, `src/lang/ast/headers/StringExpressionAST.h`, and `src/utils/DebugInfoGenerator.h`. A fresh checkout will fail to configure/build until these are added to version control in their expected locations.
 - A from-scratch CMake configure was attempted in a separate build directory and failed at the compiler-detection stage due to a Clang/MSVC toolset mismatch in the current environment (see "Building and running"); overall build success remains unverified.
 - No LICENSE file is currently present in this repository.
-
-## License
-
-No license has currently been assigned. The source code is published for
-inspection and portfolio purposes; no permission for reuse, modification, or
-redistribution is implied.
