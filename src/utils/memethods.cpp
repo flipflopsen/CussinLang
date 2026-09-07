@@ -1,4 +1,4 @@
-#include "memethods.h"
+#include "utils/memethods.h"
 
 char* safe_strcpy(char* dest, size_t size, char* src) {
     if (size > 0) {

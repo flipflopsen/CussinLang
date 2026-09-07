@@ -269,12 +269,14 @@ int ObjectCodeGen()
 	// Merge all modules into TheModule
 	llvm::Linker linker(*TheModule);
 
+	/*
 	for (auto& module : scopeManager.getAllModules()) {
 		if (linker.linkInModule(std::move(module))) {
 			errs() << "Error linking module.\n";
 			return 1;
 		}
 	}
+	*/
 
 	// Add module-level metadata flags for debug information
 	TheModule->addModuleFlag(Module::Warning, "Debug Info Version",

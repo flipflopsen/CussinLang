@@ -12,8 +12,11 @@ param(
 )
 
 # Set the Paths for Ninja and and VS Build tools
-[string]$ninjaPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
-[string]$compilerBasePath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.39.33519\bin\Hostx64\x64"
+#[string]$ninjaPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
+#[string]$compilerBasePath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.39.33519\bin\Hostx64\x64"
+
+[string]$ninjaPath = "F:\MicrosoftVisualStudio\2026Insiders\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
+[string]$compilerBasePath = "F:\MicrosoftVisualStudio\2026Insiders\VC\Tools\MSVC\14.39.33519\bin\Hostx64\x64"
 
 $env:PATH += ";" + $ninjaPath
 $env:PATH += ";" + $compilerBasePath

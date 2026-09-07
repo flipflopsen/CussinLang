@@ -1,0 +1,128 @@
+{
+  "configurations": [
+    {
+      "name": "x64-DevFast",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [
+        "clang_cl_x64_x64"
+      ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeToolchain": "B:\\Programs\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_LINKER_TYPE=LLD -DVCPKG_TARGET_TRIPLET=x64-windows -DCUSS_EXPECT_LLVM_ASSERTIONS=OFF -DCUSS_DEBUG_INFO=OFF -DBUILD_TESTING=OFF",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "--output-on-failure",
+      "variables": [
+        {
+          "name": "LLVM_DIR",
+          "value": "B:/Libraries/llvm-noassert/lib/cmake/llvm",
+          "type": "PATH"
+        },
+        {
+          "name": "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
+          "value": "/Od /Ob0 /DNDEBUG",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO",
+          "value": "/INCREMENTAL:NO",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-DevDebug",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [
+        "clang_cl_x64_x64"
+      ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeToolchain": "B:\\Programs\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_LINKER_TYPE=LLD -DVCPKG_TARGET_TRIPLET=x64-windows -DCUSS_EXPECT_LLVM_ASSERTIONS=OFF -DCUSS_DEBUG_INFO=ON -DBUILD_TESTING=ON",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "--output-on-failure",
+      "variables": [
+        {
+          "name": "LLVM_DIR",
+          "value": "B:/Libraries/llvm-noassert/lib/cmake/llvm",
+          "type": "PATH"
+        },
+        {
+          "name": "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
+          "value": "/Od /Ob0",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO",
+          "value": "/DEBUG /INCREMENTAL:NO",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-DevAssertions",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [
+        "clang_cl_x64_x64"
+      ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeToolchain": "B:\\Programs\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_LINKER_TYPE=LLD -DVCPKG_TARGET_TRIPLET=x64-windows -DCUSS_EXPECT_LLVM_ASSERTIONS=ON -DCUSS_DEBUG_INFO=ON -DBUILD_TESTING=ON",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "--output-on-failure",
+      "variables": [
+        {
+          "name": "LLVM_DIR",
+          "value": "B:\\Programs\\vcpkg\\installed\\x64-windows\\include\\llvm",
+          "type": "PATH"
+        },
+        {
+          "name": "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
+          "value": "/Od /Ob0",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO",
+          "value": "/DEBUG /INCREMENTAL:NO",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [
+        "clang_cl_x64_x64"
+      ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeToolchain": "B:\\Programs\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_LINKER_TYPE=LLD -DVCPKG_TARGET_TRIPLET=x64-windows -DCUSS_EXPECT_LLVM_ASSERTIONS=OFF -DCUSS_DEBUG_INFO=OFF -DBUILD_TESTING=OFF",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "--output-on-failure",
+      "variables": [
+        {
+          "name": "LLVM_DIR",
+          "value": "B:/Libraries/llvm-noassert/lib/cmake/llvm",
+          "type": "PATH"
+        },
+        {
+          "name": "CMAKE_CXX_FLAGS_RELEASE",
+          "value": "/O2 /Ob2 /DNDEBUG",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_EXE_LINKER_FLAGS_RELEASE",
+          "value": "/INCREMENTAL:NO /OPT:REF /OPT:ICF",
+          "type": "STRING"
+        }
+      ]
+    }
+  ]
+}

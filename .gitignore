@@ -10,7 +10,6 @@ build.ninja
 cmake_install.cmake
 
 # Generated Visual Studio project files
-*.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
