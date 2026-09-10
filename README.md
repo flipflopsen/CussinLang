@@ -6,6 +6,14 @@ CussinLang is a small, statically/strongly typed toy programming language implem
 
 This repository is an experimental/learning project. It is published primarily for technical documentation and portfolio purposes and should not be considered production-ready. The build depends on a hardcoded, machine-specific vcpkg path (see "Known limitations"), and build/test success has not been verified as part of this publication pass.
 
+## About the Naming
+The reason I've initially picked "CussinLang" as the name for the project is, that I initially created this project to learn C++ and educate myself further in compiler theory.
+I think a lot of experienced C++ developers will understand this decision.
+
+Why didn't I change the name?
+Before publishing it to GitHub for Portfolio reasons, I wanted to update packages (including LLVM) and make the code easier to compile and execute.
+As obviously visible, this is still WIP, thus the name will stay as it is as a humorous name for a C++ & LLVM project.
+
 ## Overview
 
 CussinLang compiles source text through the following stages:
